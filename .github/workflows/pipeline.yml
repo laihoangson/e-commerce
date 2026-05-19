@@ -1,0 +1,62 @@
+name: RetailLens pipeline
+
+# Week 1: just run health check
+# W2+: will add ingestion, transformation, ML scoring, sync steps
+
+on:
+  # Manual trigger from Actions tab
+  workflow_dispatch:
+
+  # Schedule: every 6 hours
+  # Disabled in W1 — uncomment when ready (W4+)
+  # schedule:
+  #   - cron: '0 */6 * * *'
+
+  # Run on push to main for the pipeline directory
+  push:
+    branches: [main]
+    paths:
+      - 'pipeline/**'
+      - 'requirements.txt'
+      - '.github/workflows/pipeline.yml'
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run health check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_STORAGE_BUCKET: retaillens-artifacts
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: python pipeline/00_health_check.py
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-logs
+          path: |
+            *.log
+            data/*.duckdb
+          retention-days: 7
