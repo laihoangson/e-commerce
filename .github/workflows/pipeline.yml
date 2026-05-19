@@ -1,18 +1,29 @@
 name: RetailLens pipeline
 
-# Week 1: just run health check
-# W2+: will add ingestion, transformation, ML scoring, sync steps
+# Week 2: health check + bronze ingestion (live mode)
+# W3+: will add silver transformation, gold marts, ML scoring
 
 on:
-  # Manual trigger from Actions tab
   workflow_dispatch:
+    inputs:
+      ingest_mode:
+        description: 'Ingestion mode'
+        required: true
+        default: 'live'
+        type: choice
+        options:
+          - live
+          - backfill
+      num_events:
+        description: 'Faker clickstream events to generate'
+        required: true
+        default: '2000'
 
-  # Schedule: every 6 hours
-  # Disabled in W1 — uncomment when ready (W4+)
-  # schedule:
-  #   - cron: '0 */6 * * *'
+  # Cron: every 6 hours
+  # Enabled in W2 since we have real ingestion now
+  schedule:
+    - cron: '0 */6 * * *'
 
-  # Run on push to main for the pipeline directory
   push:
     branches: [main]
     paths:
@@ -21,9 +32,18 @@ on:
       - '.github/workflows/pipeline.yml'
 
 jobs:
-  health-check:
+  pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      SUPABASE_STORAGE_BUCKET: retaillens-artifacts
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
     steps:
       - name: Checkout
@@ -40,16 +60,34 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run health check
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          SUPABASE_STORAGE_BUCKET: retaillens-artifacts
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      - name: Health check
         run: python pipeline/00_health_check.py
+
+      - name: Bronze ingestion (live mode)
+        # Manual workflow_dispatch uses input; cron + push use default 'live'
+        run: |
+          MODE="${{ github.event.inputs.ingest_mode || 'live' }}"
+          NUM="${{ github.event.inputs.num_events || '2000' }}"
+          echo "Running ingestion: mode=$MODE num_events=$NUM"
+          python pipeline/01_ingest_bronze.py --mode "$MODE" --num-events "$NUM"
+
+      - name: Report row counts
+        if: success()
+        run: |
+          python -c "
+          import duckdb
+          con = duckdb.connect('data/retaillens.duckdb', read_only=True)
+          tables = con.execute('''
+              SELECT table_schema || '.' || table_name AS t
+              FROM information_schema.tables
+              WHERE table_schema = 'bronze'
+              ORDER BY t
+          ''').fetchall()
+          print('Bronze layer:')
+          for (t,) in tables:
+              n = con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]
+              print(f'  {t}: {n:,} rows')
+          "
 
       - name: Upload logs on failure
         if: failure()
