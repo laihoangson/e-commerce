@@ -1,7 +1,7 @@
 """
-pipeline/01_ingest_bronze.py - Bronze layer ingestion (refactored W2.1).
+pipeline/01_ingest_bronze.py - Bronze layer ingestion.
 
-Architecture (lakehouse pattern):
+Architecture (hybrid lakehouse):
     - Olist tables: VIEWs over Parquet files on Supabase Storage
       (downloaded fresh each run, queried via DuckDB native Parquet reader)
     - Clickstream: real TABLE in DuckDB (append-only, dynamic data)
@@ -13,12 +13,18 @@ Why VIEWs for Olist:
     3. Standard lakehouse pattern (like Athena/Trino over S3)
     4. Silver/Gold queries work identically whether source is TABLE or VIEW
 
+Bronze layer also normalizes types:
+    Olist CSV->Parquet preserves dates as VARCHAR. VIEW DDL casts them to
+    proper TIMESTAMP at the Bronze boundary so downstream queries (Silver,
+    notebooks, ad-hoc) see correct types without re-casting.
+
 Orchestrates:
     1. Download retaillens.duckdb from Supabase Storage (or start fresh)
-    2. Download Olist Parquet files to local data/raw/olist/
-    3. Register Olist tables as VIEWs over the Parquet files
-    4. Generate Faker clickstream events and append to bronze.raw_clickstream
-    5. Upload updated DuckDB back to Supabase Storage
+    2. Drop legacy Olist TABLEs if found (cleanup from pre-W2.1 design)
+    3. Download Olist Parquet files to local data/raw/olist/
+    4. Register Olist tables as type-cast VIEWs over Parquet
+    5. Generate Faker clickstream events and append to bronze.raw_clickstream
+    6. Upload updated DuckDB back to Supabase Storage
 
 Run locally:
     python pipeline/01_ingest_bronze.py --mode backfill --num-events 50000
@@ -70,12 +76,67 @@ OLIST_VIEW_MAP = {
 }
 
 
+# Per-table column-type overrides for VIEW DDL.
+# Olist CSVs store dates as VARCHAR strings; pandas read_csv doesn't auto-parse them.
+# Cast at the VIEW layer so downstream queries see proper TIMESTAMP types.
+COLUMN_CASTS = {
+    "olist_orders_dataset.parquet": {
+        "order_purchase_timestamp": "TIMESTAMP",
+        "order_approved_at": "TIMESTAMP",
+        "order_delivered_carrier_date": "TIMESTAMP",
+        "order_delivered_customer_date": "TIMESTAMP",
+        "order_estimated_delivery_date": "TIMESTAMP",
+    },
+    "olist_order_items_dataset.parquet": {
+        "shipping_limit_date": "TIMESTAMP",
+    },
+    "olist_order_reviews_dataset.parquet": {
+        "review_creation_date": "TIMESTAMP",
+        "review_answer_timestamp": "TIMESTAMP",
+    },
+}
+
+
+def _build_select_clause(parquet_name: str) -> str:
+    """
+    Build SELECT clause with explicit timestamp casts for known columns.
+
+    DuckDB's `SELECT * REPLACE (...)` lets us cast specific columns while
+    keeping the rest of the schema intact.
+
+    Returns "*" if no casts needed for this table.
+    """
+    casts = COLUMN_CASTS.get(parquet_name, {})
+    if not casts:
+        return "*"
+    replacements = ", ".join(
+        f"CAST({col} AS {sql_type}) AS {col}"
+        for col, sql_type in casts.items()
+    )
+    return f"* REPLACE ({replacements})"
+
+
 def register_olist_views(
     duckdb_path: Path,
     olist_dir: Path,
     batch_id: str,
 ) -> dict[str, int]:
-    """Register Olist Parquet files as VIEWs in the bronze schema."""
+    """
+    Register Olist Parquet files as VIEWs in the bronze schema.
+
+    A VIEW is a saved query, not stored data. DuckDB reads from Parquet on
+    every query, but Parquet is fast and local so this is cheap.
+
+    Two design choices:
+        1. parquet_uri uses .resolve() to get absolute path so the VIEW works
+           regardless of CWD (notebook in ml/notebooks/ vs script in root).
+        2. Timestamps are explicitly cast via SELECT * REPLACE (...).
+
+    Idempotent: CREATE OR REPLACE VIEW always succeeds.
+
+    Returns:
+        dict mapping view name to row count (for logging).
+    """
     counts = {}
     ingested_at = datetime.now(timezone.utc)
 
@@ -86,12 +147,14 @@ def register_olist_views(
                 logger.error(f"Parquet not found: {parquet_path}")
                 continue
 
-            parquet_uri = parquet_path.as_posix()
+            # Absolute path so VIEW resolves correctly from any CWD
+            parquet_uri = parquet_path.resolve().as_posix()
+            select_clause = _build_select_clause(parquet_name)
 
             con.execute(f"""
                 CREATE OR REPLACE VIEW {view} AS
                 SELECT
-                    *,
+                    {select_clause},
                     TIMESTAMP '{ingested_at.isoformat()}' AS _ingested_at,
                     '{parquet_name}' AS _source_file,
                     '{batch_id}' AS _batch_id,
@@ -101,7 +164,13 @@ def register_olist_views(
 
             count = con.execute(f"SELECT COUNT(*) FROM {view}").fetchone()[0]
             counts[view] = count
-            logger.info(f"Registered VIEW {view}: {count:,} rows (via Parquet)")
+
+            cast_info = ""
+            if parquet_name in COLUMN_CASTS:
+                n_casts = len(COLUMN_CASTS[parquet_name])
+                cast_info = f" [+{n_casts} timestamp casts]"
+
+            logger.info(f"Registered VIEW {view}: {count:,} rows{cast_info}")
 
     total = sum(counts.values())
     logger.success(
@@ -111,7 +180,16 @@ def register_olist_views(
 
 
 def drop_legacy_olist_tables(duckdb_path: Path) -> int:
-    """One-time cleanup: drop old bronze TABLEs from broken previous runs."""
+    """
+    One-time cleanup: drop any old bronze TABLEs created by pre-W2.1 runs.
+
+    Old design embedded Olist data inside the DuckDB file as TABLEs (bloating
+    it past 50MB). After W2.1 refactor we use VIEWs. This drops legacy TABLEs
+    so the new VIEWs can take their names.
+
+    Returns:
+        Number of legacy tables dropped.
+    """
     dropped = 0
     with get_connection(duckdb_path) as con:
         for view in OLIST_VIEW_MAP.values():
@@ -189,7 +267,7 @@ def main(
         logger.info("Step 3/6 - Download Olist Parquets from Storage")
         download_olist_parquets()
 
-        logger.info("Step 4/6 - Register Olist as VIEWs over Parquet")
+        logger.info("Step 4/6 - Register Olist as VIEWs over Parquet (with type casts)")
         olist_counts = register_olist_views(LOCAL_DUCKDB, LOCAL_OLIST_DIR, batch_id)
 
         logger.info("Step 5/6 - Generate Faker clickstream")
