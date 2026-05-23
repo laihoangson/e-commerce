@@ -5,6 +5,7 @@ on:
     branches: [main]
   workflow_dispatch: {}
   schedule:
+    # Cron 12h một lần (00:00 và 12:00 UTC) — live mode sẽ dùng từ Phase 2
     - cron: "0 0,12 * * *"
 
 jobs:

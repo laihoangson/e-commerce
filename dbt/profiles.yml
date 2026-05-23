@@ -1,0 +1,18 @@
+# dbt-duckdb profile for RetailLens.
+#
+# Place this at dbt/profiles.yml and run dbt with:
+#   dbt run --profiles-dir .
+# from inside the dbt/ directory, OR copy it to ~/.dbt/profiles.yml.
+#
+# The DuckDB path is read from the DUCKDB_PATH env var (defaults to the repo's
+# data/retaillens.duckdb). When running from dbt/, the relative path resolves
+# against the dbt working directory, so an absolute path is recommended.
+
+retaillens:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/retaillens.duckdb') }}"
+      threads: 4
+      schema: main

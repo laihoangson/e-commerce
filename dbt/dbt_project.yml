@@ -1,0 +1,22 @@
+name: "retaillens"
+version: "1.0.0"
+config-version: 2
+
+profile: "retaillens"
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  retaillens:
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table

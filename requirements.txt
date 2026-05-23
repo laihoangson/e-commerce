@@ -10,8 +10,8 @@ numpy==2.2.0
 pandas==2.2.3
 
 # Quality + transform (Phase 3)
-# great-expectations==1.2.4
-# dbt-duckdb==1.9.1
+great-expectations==1.17.2
+dbt-duckdb==1.10.1
 
 # API + serving (Phase 4)
 # fastapi==0.115.6
