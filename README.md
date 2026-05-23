@@ -27,10 +27,10 @@ In active development.
 
 | Phase | Weeks | Milestone | Status |
 |-------|-------|-----------|--------|
-| 1. Foundation | W1-W2 | Repo, GHA, Supabase, health check | In progress |
-| 2. Spec & data generation | W3-W6 | Faker generators, Bronze backfill | TODO |
-| 3. Quality & transform | W6-W8 | Great Expectations, dbt Silver+Gold | TODO |
-| 4. Dashboard MVP | W9-W10 | FastAPI + dashboard, 7 sections | TODO |
+| 1. Foundation | W1-W2 | Repo, GHA, Supabase, health check | Done |
+| 2. Spec & data generation | W3-W6 | Faker generators, Bronze backfill | Done |
+| 3. Quality & transform | W6-W8 | Great Expectations, dbt Silver+Gold | Done |
+| 4. Dashboard MVP | W9-W10 | FastAPI + dashboard, 4 sections | Done |
 | 5. ML | W11-W15 | Reactivation, recsys, A/B engine | TODO |
 | 6. RAG + NLI | W16-W18 | RAG insights + NLI verified citations | TODO |
 | 7. Observability & launch | W19-W22 | Drift detection, polish, launch | TODO |
