@@ -25,7 +25,10 @@ SUITES: dict[str, list] = {
                 "shipped",
                 "canceled",
                 "unavailable",
+                "invoiced",
                 "processing",
+                "created",
+                "approved",
             ],
         ),
         gx.expectations.ExpectColumnValuesToNotBeNull(
@@ -46,13 +49,13 @@ SUITES: dict[str, list] = {
         gx.expectations.ExpectColumnValuesToNotBeNull(column="order_id"),
         gx.expectations.ExpectColumnValuesToBeInSet(
             column="payment_type",
-            value_set=["credit_card", "debit_card", "afterpay", "bpay", "paypal"],
+            value_set=["credit_card", "boleto", "voucher", "debit_card", "not_defined"],
         ),
         gx.expectations.ExpectColumnValuesToBeBetween(
-            column="payment_installments", min_value=1, max_value=24
+            column="payment_installments", min_value=0, max_value=24
         ),
         gx.expectations.ExpectColumnValuesToBeBetween(
-            column="payment_value", min_value=0, strict_min=True
+            column="payment_value", min_value=0
         ),
     ],
     "raw_reviews": [

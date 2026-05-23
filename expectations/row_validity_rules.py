@@ -17,7 +17,8 @@ VALIDITY_RULES: dict[str, str] = {
         AND customer_id IS NOT NULL
         AND order_purchase_timestamp IS NOT NULL
         AND order_status IN
-            ('delivered','shipped','canceled','unavailable','processing')
+            ('delivered','shipped','canceled','unavailable','invoiced',
+             'processing','created','approved')
         -- lifecycle timestamps must be ordered when present
         AND (order_approved_at IS NULL
              OR order_approved_at >= order_purchase_timestamp)
@@ -33,16 +34,9 @@ VALIDITY_RULES: dict[str, str] = {
     "raw_payments": """
         order_id IS NOT NULL
         AND payment_type IN
-            ('credit_card','debit_card','afterpay','bpay','paypal')
-        AND payment_installments BETWEEN 1 AND 24
-        AND payment_value > 0
-        -- installments > 1 only valid for credit_card (any 1..24)
-        -- or afterpay (fixed 4); all other types must be single payment
-        AND (
-            payment_installments = 1
-            OR payment_type = 'credit_card'
-            OR (payment_type = 'afterpay' AND payment_installments = 4)
-        )
+            ('credit_card','boleto','voucher','debit_card','not_defined')
+        AND payment_installments BETWEEN 0 AND 24
+        AND payment_value >= 0
     """,
     "raw_reviews": """
         review_id IS NOT NULL

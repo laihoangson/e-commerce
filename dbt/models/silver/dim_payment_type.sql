@@ -1,9 +1,9 @@
--- Payment type dimension. Static lookup of the 5 AU payment types.
+-- Payment type dimension. Static lookup of Olist (Brazilian) payment types.
 select * from (
     values
         ('credit_card', 'Credit Card', true),
+        ('boleto',      'Boleto',      false),
+        ('voucher',     'Voucher',     false),
         ('debit_card',  'Debit Card',  false),
-        ('afterpay',    'Afterpay',    true),
-        ('bpay',        'BPAY',        false),
-        ('paypal',      'PayPal',      false)
+        ('not_defined', 'Not Defined', false)
 ) as t(payment_type, payment_type_label, supports_installments)
