@@ -57,7 +57,7 @@ Identity mapping kept for schema symmetry with marketplace datasets.
 
 ## Tier 1 — customers
 
-### raw_customers (~124k rows, one per order)
+### raw_customers (~87k rows, one per order)
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -69,7 +69,7 @@ Identity mapping kept for schema symmetry with marketplace datasets.
 
 ## Tier 2 — transactional (order generator emits all of these together)
 
-### raw_orders (~124k rows)
+### raw_orders (~87k rows)
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -84,7 +84,7 @@ Identity mapping kept for schema symmetry with marketplace datasets.
 | ab_experiment | VARCHAR | experiment name or NULL |
 | ab_variant | VARCHAR | 'A'/'B' or NULL |
 
-### raw_order_items (~140k rows)
+### raw_order_items (~103k rows)
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -95,7 +95,7 @@ Identity mapping kept for schema symmetry with marketplace datasets.
 | price | DOUBLE | |
 | freight_value | DOUBLE | |
 
-### raw_payments (~129k rows)
+### raw_payments (~87k rows)
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -105,7 +105,7 @@ Identity mapping kept for schema symmetry with marketplace datasets.
 | payment_installments | INTEGER | 1–24 for credit_card, else 1 |
 | payment_value | DOUBLE | order item total + freight |
 
-### raw_reviews (~123k rows)
+### raw_reviews (~84k rows)
 
 | Column | Type | Notes |
 |--------|------|-------|

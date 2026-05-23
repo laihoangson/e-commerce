@@ -11,8 +11,9 @@ conditional ones, not full multivariate fidelity.
 
 ## Order volume and seasonality
 
-- Backfill window: 2024-01-01 to 2026-05-30 (~2 years)
-- Base rate: ~100 orders/day → ~124k total orders
+- Backfill window: 2024-01-01 to 2026-05-30 (~2 years, ~881 days)
+- Base rate: ~100 orders/day; after day-of-week multipliers (avg ~0.99)
+  this yields ~87k total orders
 - Day-of-week seasonality: Monday–Tuesday peak, weekend trough
   (multipliers roughly Mon 1.15, Tue 1.15, Wed 1.05, Thu 1.0, Fri 0.95,
   Sat 0.85, Sun 0.85)

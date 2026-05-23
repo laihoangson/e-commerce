@@ -1,260 +1,36 @@
-# =============================================================================
-# RetailLens .gitignore
-# =============================================================================
-# Strategy: be aggressive about ignoring data, credentials, build artifacts.
-# When in doubt, ignore — it's easier to whitelist with `!` than to clean up
-# a committed secret.
-# =============================================================================
-
-
-# -----------------------------------------------------------------------------
-# Secrets — these would compromise the project if leaked
-# -----------------------------------------------------------------------------
+# Secrets
 .env
-.env.local
-.env.*.local
-.env.production
-.env.development
-*.pem
 *.key
-*.crt
-secrets/
-credentials/
-kaggle.json
-service-account-*.json
-*.token
 
-
-# -----------------------------------------------------------------------------
-# Python — virtual envs, bytecode, caches, build artifacts
-# -----------------------------------------------------------------------------
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv/
-venv/
-env/
-ENV/
-
-# Test + lint caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.hypothesis/
-
-# Build artifacts
-*.egg-info/
-*.egg
-dist/
-build/
-wheels/
-pip-log.txt
-pip-delete-this-directory.txt
-
-
-# -----------------------------------------------------------------------------
-# Jupyter notebooks — checkpoints only, keep .ipynb tracked
-# -----------------------------------------------------------------------------
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-*-checkpoint.ipynb
-
-
-# -----------------------------------------------------------------------------
-# Data files — strictest section, easy to leak GB of CSV by accident
-# -----------------------------------------------------------------------------
-
-# Raw downloads from Kaggle, Faker, etc. NEVER commit.
-data/raw/
-
-# DuckDB files (the "lakehouse-in-a-file") — too large + contain real data
-data/*.duckdb
-data/*.duckdb.wal
+# DuckDB local file (source-of-truth lives on Supabase Storage)
 *.duckdb
 *.duckdb.wal
+data/*.duckdb
 
-# Parquet, Arrow, Feather — usually transformed data
-data/**/*.parquet
-data/**/*.arrow
-data/**/*.feather
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
 
-# Large CSV / TSV in data/, but allow tiny sample files
-data/**/*.csv
-data/**/*.tsv
-!data/sample/*.csv
-!data/sample/sample_*.csv
-
-# JSON dumps
-data/**/*.jsonl
-data/**/*.ndjson
-
-
-# -----------------------------------------------------------------------------
-# dbt artifacts — regenerated on every run, no value in tracking
-# -----------------------------------------------------------------------------
+# dbt
 dbt/target/
-dbt/logs/
 dbt/dbt_packages/
-dbt/.user.yml
-profiles.yml
+dbt/logs/
 
-
-# -----------------------------------------------------------------------------
 # Great Expectations
-# -----------------------------------------------------------------------------
 expectations/uncommitted/
-expectations/checkpoints/
-expectations/.ge_store_backend_id
-expectations/data_docs/
 
-
-# -----------------------------------------------------------------------------
-# ChromaDB — vector store persists as files, regenerate from Gold tables
-# -----------------------------------------------------------------------------
-chromadb_persist/
-chromadb/
-*.chroma
-
-
-# -----------------------------------------------------------------------------
-# ML artifacts — committed only the final serving models in api/models/
-# -----------------------------------------------------------------------------
-
-# Trained models scattered in ml/ (training experiments)
-ml/**/*.pkl
-ml/**/*.joblib
-ml/**/*.onnx
-ml/**/*.h5
-ml/**/*.pt
-ml/**/*.pth
-
-# SHAP cache, feature stores
-ml/**/shap_values_*.npz
-ml/**/feature_store/
-
-# But DO commit the production models served by FastAPI
-!api/models/*.pkl
-!api/models/*.joblib
-
-# MLflow tracking (if added later)
-mlruns/
-mlartifacts/
-
-
-# -----------------------------------------------------------------------------
-# Tar/zip — used for ChromaDB snapshots uploaded to Supabase Storage
-# Don't commit these to Git
-# -----------------------------------------------------------------------------
-*.tar
+# ChromaDB persisted artifacts
+rag/chroma/
 *.tar.gz
-*.tgz
-*.zip
-*.7z
 
-# But allow if explicitly placed in fixtures/ for tests
-!tests/fixtures/*.tar.gz
+# OS
+.DS_Store
+Thumbs.db
 
-
-# -----------------------------------------------------------------------------
-# Dashboard — Node.js / built assets (if we add a build step later)
-# -----------------------------------------------------------------------------
-dashboard/node_modules/
-dashboard/dist/
-dashboard/.cache/
-package-lock.json.bak
-
-
-# -----------------------------------------------------------------------------
-# Render / Docker — local containers, not deployed artifacts
-# -----------------------------------------------------------------------------
-.render/
-docker-compose.override.yml
-.docker/
-
-
-# -----------------------------------------------------------------------------
-# IDE / editor
-# -----------------------------------------------------------------------------
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*.sublime-workspace
-*.sublime-project
-.cursor/
-.aider*
-
-# Allow shared VS Code settings if needed later
-# !.vscode/settings.json
-# !.vscode/launch.json
-
-
-# -----------------------------------------------------------------------------
-# OS files
-# -----------------------------------------------------------------------------
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-Desktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Linux
-*~
-.directory
-.Trash-*
-
-
-# -----------------------------------------------------------------------------
-# Logs and runtime files
-# -----------------------------------------------------------------------------
-*.log
-logs/
-log/
-*.pid
-*.seed
-*.pid.lock
-
-
-# -----------------------------------------------------------------------------
-# Temporary files
-# -----------------------------------------------------------------------------
-tmp/
-temp/
-*.tmp
-*.bak
-*.backup
-*.old
-.cache/
-
-
-# -----------------------------------------------------------------------------
-# Project-specific: things we generate but don't commit
-# -----------------------------------------------------------------------------
-
-# Snapshots downloaded from Supabase Storage during local dev
-local_snapshots/
-
-# Generated diagrams (we re-export from source on demand)
-docs/diagrams/*.png
-docs/diagrams/*.svg.bak
-!docs/diagrams/*.svg
-
-# Coverage / profiling reports
-*.prof
-coverage.xml
