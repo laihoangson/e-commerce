@@ -1,0 +1,21 @@
+# Render deployment for the RetailLens API.
+#
+# Connect this repo to Render as a Web Service, or use this blueprint.
+# Set SUPABASE_DB_URL in the Render dashboard (use the Supabase POOLER
+# connection string, port 6543, for serverless-friendly pooling).
+#
+# CORS_ORIGINS should be set to the GitHub Pages dashboard origin in production.
+
+services:
+  - type: web
+    name: retaillens-api
+    runtime: python
+    plan: free
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
