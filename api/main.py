@@ -162,3 +162,46 @@ def customer_segments() -> list[dict]:
         "COUNT(*) AS customers, ROUND(AVG(monetary)::numeric, 2) AS avg_monetary "
         "FROM customer_ltv GROUP BY 1 ORDER BY 1"
     )
+
+
+@app.get("/api/cohort-retention")
+def cohort_retention() -> dict:
+    """Cohort retention as a heatmap-ready structure.
+
+    Returns retention as a percentage of each cohort's month-0 size, so cohorts
+    of different sizes are comparable.
+    """
+    rows = _query(
+        "SELECT to_char(cohort_month, 'YYYY-MM') AS cohort, "
+        "month_offset, active_customers "
+        "FROM cohort_retention ORDER BY cohort_month, month_offset"
+    )
+    # Pivot into {cohort: {offset: count}} and compute size at offset 0.
+    cohorts: dict[str, dict[int, int]] = {}
+    for r in rows:
+        cohorts.setdefault(r["cohort"], {})[int(r["month_offset"])] = int(
+            r["active_customers"]
+        )
+    max_offset = max((o for c in cohorts.values() for o in c), default=0)
+    grid = []
+    for cohort in sorted(cohorts):
+        base = cohorts[cohort].get(0, 0) or 1
+        cells = []
+        for off in range(max_offset + 1):
+            cnt = cohorts[cohort].get(off)
+            cells.append(
+                None if cnt is None else round(100.0 * cnt / base, 1)
+            )
+        grid.append({"cohort": cohort, "size": cohorts[cohort].get(0, 0), "cells": cells})
+    return {"max_offset": max_offset, "rows": grid}
+
+
+@app.get("/api/sellers/top")
+def sellers_top(limit: int = 10) -> list[dict]:
+    """Top sellers by total revenue."""
+    return _query(
+        "SELECT seller_id, seller_state, total_orders, total_revenue, "
+        "avg_review_score FROM seller_metrics "
+        "ORDER BY total_revenue DESC LIMIT :lim",
+        {"lim": limit},
+    )

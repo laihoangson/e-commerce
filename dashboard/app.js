@@ -11,13 +11,15 @@ const fmtMoney = (n) =>
 const fmtNum = (n) => Number(n).toLocaleString("en-AU");
 
 async function apiGet(path) {
-  const res = await fetch(CONFIG.API_BASE + path);
+  const base = CONFIG.API_BASE.replace(/\/+$/, ""); // strip trailing slash(es)
+  const res = await fetch(base + path);
   if (!res.ok) throw new Error(`API ${path} -> ${res.status}`);
   return res.json();
 }
 
 async function restGet(table, query = "") {
-  const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}?${query}`;
+  const base = CONFIG.SUPABASE_URL.replace(/\/+$/, "");
+  const url = `${base}/rest/v1/${table}?${query}`;
   const res = await fetch(url, {
     headers: {
       apikey: CONFIG.SUPABASE_ANON_KEY,
@@ -181,6 +183,115 @@ async function loadFunnel() {
   }
 }
 
+// 5. Cohort retention heatmap (FastAPI: /api/cohort-retention)
+function heatColor(pct) {
+  if (pct === null || pct === undefined) return "var(--panel-2)";
+  // 0% -> faint, 100% -> full accent
+  const t = Math.min(1, pct / 100);
+  const alpha = 0.08 + t * 0.92;
+  return `rgba(232,163,61,${alpha.toFixed(2)})`;
+}
+async function loadCohort() {
+  try {
+    const data = await apiGet("/api/cohort-retention");
+    const headers =
+      '<th class="cohort-h">Cohort</th>' +
+      Array.from({ length: data.max_offset + 1 }, (_, i) => `<th>M${i}</th>`).join("");
+    const body = data.rows
+      .map((row) => {
+        const cells = row.cells
+          .map((v) => {
+            const txt = v === null ? "" : v + "%";
+            const dark = v !== null && v / 100 > 0.5;
+            return `<td><div class="cell" style="background:${heatColor(v)};color:${dark ? "#1a1205" : "var(--ink)"}">${txt}</div></td>`;
+          })
+          .join("");
+        return `<tr><td class="cohort-label">${row.cohort} <span style="opacity:.6">(${row.size})</span></td>${cells}</tr>`;
+      })
+      .join("");
+    document.getElementById("cohort").innerHTML =
+      `<table class="heat"><thead><tr>${headers}</tr></thead><tbody>${body}</tbody></table>`;
+  } catch (e) {
+    showError("cohort", "Could not load cohorts.");
+  }
+}
+
+// 6. Top sellers (FastAPI: /api/sellers/top)
+async function loadSellers() {
+  try {
+    const rows = await apiGet("/api/sellers/top?limit=10");
+    const trs = rows
+      .map(
+        (s, i) =>
+          `<tr><td class="rank">#${i + 1}</td>` +
+          `<td class="sid">${String(s.seller_id).slice(0, 8)}…</td>` +
+          `<td><span class="state-tag">${s.seller_state || "—"}</span></td>` +
+          `<td class="num">${fmtNum(s.total_orders)}</td>` +
+          `<td class="num">${fmtMoney(s.total_revenue)}</td>` +
+          `<td class="num">${Number(s.avg_review_score).toFixed(2)}★</td></tr>`
+      )
+      .join("");
+    document.getElementById("sellers").innerHTML =
+      `<table class="seller-table"><thead><tr>` +
+      `<th>Rank</th><th>Seller</th><th>State</th>` +
+      `<th class="num">Orders</th><th class="num">Revenue</th><th class="num">Avg Review</th>` +
+      `</tr></thead><tbody>${trs}</tbody></table>`;
+  } catch (e) {
+    showError("sellers", "Could not load sellers.");
+  }
+}
+
+// 7. Customer LTV segments (FastAPI: /api/customer-segments)
+async function loadLtv() {
+  try {
+    const rows = await apiGet("/api/customer-segments");
+    const labels = rows.map((r) => "RFM " + r.rfm_total);
+    const counts = rows.map((r) => Number(r.customers));
+    if (typeof Chart === "undefined") {
+      document.querySelector("#ltv-chart").parentElement.innerHTML =
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        rows
+          .map(
+            (r) =>
+              `<tr><td style="padding:8px 0;color:#8b8f9a">RFM ${r.rfm_total}</td>` +
+              `<td style="padding:8px 0;text-align:right">${fmtNum(r.customers)} customers</td>` +
+              `<td style="padding:8px 0;text-align:right;color:#8b8f9a">A$${Number(r.avg_monetary).toFixed(0)} avg</td></tr>`
+          )
+          .join("") +
+        "</table>";
+      return;
+    }
+    new Chart(document.getElementById("ltv-chart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Customers",
+            data: counts,
+            backgroundColor: "rgba(232,163,61,0.55)",
+            borderColor: "#e8a33d",
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#8b8f9a", font: { family: "JetBrains Mono", size: 10 } } },
+          y: { grid: { color: "#2a2e37" }, ticks: { color: "#8b8f9a", font: { family: "JetBrains Mono" } } },
+        },
+      },
+    });
+  } catch (e) {
+    document.querySelector("#ltv-chart").parentElement.innerHTML =
+      `<div class="error">Could not load segments. ${e.message}</div>`;
+  }
+}
+
 function init() {
   document.getElementById("last-updated").textContent =
     "● Loaded " + new Date().toLocaleDateString("en-AU");
@@ -188,6 +299,9 @@ function init() {
   loadRevenue();
   loadAbTests();
   loadFunnel();
+  loadCohort();
+  loadSellers();
+  loadLtv();
 }
 
 document.addEventListener("DOMContentLoaded", init);
