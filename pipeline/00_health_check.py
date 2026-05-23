@@ -42,6 +42,21 @@ def _fail(msg: str) -> None:
     print(f"  [FAIL] {msg}")
 
 
+def _fingerprint(value: str) -> str:
+    """Safe, non-revealing fingerprint of a secret: length + head/tail only.
+
+    Lets you compare the same secret across environments (local vs CI) without
+    ever printing the full value. Also flags trailing whitespace/newlines, the
+    most common cause of an 'Invalid API key' error after copy-paste.
+    """
+    stripped = value.strip()
+    has_ws = value != stripped
+    head = stripped[:4] if len(stripped) >= 4 else stripped
+    tail = stripped[-4:] if len(stripped) >= 8 else ""
+    flag = "  <-- has leading/trailing whitespace!" if has_ws else ""
+    return f"len={len(value)} head='{head}' tail='{tail}'{flag}"
+
+
 def check_env() -> bool:
     import os
 
@@ -51,6 +66,20 @@ def check_env() -> bool:
         _fail(f"missing: {', '.join(missing)}")
         return False
     _ok(f"all {len(REQUIRED_ENV)} required vars present")
+
+    # Diagnostics: print non-secret values in full, secrets as a safe
+    # fingerprint. Compare local output against the CI log to spot a mismatch.
+    print("   diagnostics (compare local vs CI):")
+    url = os.getenv("SUPABASE_URL", "")
+    bucket = os.getenv("SUPABASE_BUCKET", "")
+    print(f"     SUPABASE_URL    = '{url}'")
+    print(f"     SUPABASE_BUCKET = '{bucket}'")
+    for secret_name in ("SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY"):
+        val = os.getenv(secret_name)
+        if val:
+            print(f"     {secret_name} {_fingerprint(val)}")
+        else:
+            print(f"     {secret_name} (not set)")
     return True
 
 
@@ -84,9 +113,16 @@ def check_supabase() -> bool:
             _ok(f"connected OK, bucket '{bucket}' exists")
             return True
         _fail(f"connected OK but bucket '{bucket}' not found")
+        print("     hint: bucket name mismatch, or SUPABASE_BUCKET secret differs from the real bucket")
         return False
     except Exception as exc:  # noqa: BLE001
+        msg = str(exc).lower()
         _fail(f"error: {exc}")
+        if "api key" in msg or "invalid" in msg or "jwt" in msg or "401" in msg:
+            print("     hint: SUPABASE_SERVICE_KEY is wrong/stale. Compare the fingerprint above")
+            print("           with your local run. Re-paste the service_role key (not anon).")
+        elif "url" in msg or "name resolution" in msg or "connect" in msg:
+            print("     hint: SUPABASE_URL looks wrong. Should be https://<ref>.supabase.co (no trailing /)")
         return False
 
 

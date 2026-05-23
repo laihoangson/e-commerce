@@ -5,7 +5,6 @@ on:
     branches: [main]
   workflow_dispatch: {}
   schedule:
-    # Cron 12h một lần (00:00 và 12:00 UTC) — live mode sẽ dùng từ Phase 2
     - cron: "0 0,12 * * *"
 
 jobs:
@@ -31,5 +30,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
         run: python 00_health_check.py
