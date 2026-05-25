@@ -25,6 +25,9 @@ GOLD_MARTS = [
     "seller_metrics",
     "ab_test_results",
     "funnel_conversion",
+    "delivery_performance",
+    "review_analysis",
+    "revenue_by_state",
 ]
 
 # dbt writes Gold to the main_gold schema in DuckDB.

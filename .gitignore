@@ -34,3 +34,5 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+dbt/.user.yml
+dbt/target/

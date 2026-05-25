@@ -91,34 +91,82 @@ def health() -> dict:
 
 
 @app.get("/api/kpis")
-def kpis() -> dict:
-    """Headline KPIs for the dashboard overview section."""
-    revenue = _query(
+def kpis(source: str = "olist") -> dict:
+    """Headline KPIs for a dashboard tab, filtered by data source.
+
+    source: 'olist' (real historical) or 'faker_live' (synthetic live tail).
+    """
+    rev = _query(
         "SELECT COALESCE(SUM(revenue),0) AS total_revenue, "
         "COALESCE(SUM(orders),0) AS total_orders, "
-        "COALESCE(AVG(avg_order_value),0) AS avg_order_value FROM daily_revenue"
+        "COALESCE(AVG(avg_order_value),0) AS avg_order_value "
+        "FROM daily_revenue WHERE data_source = :src",
+        {"src": source},
     )
-    customers = _query("SELECT COUNT(*) AS total_customers FROM customer_ltv")
-    funnel = _query("SELECT delivery_rate_pct FROM funnel_conversion LIMIT 1")
-    row = revenue[0] if revenue else {}
+    funnel = _query(
+        "SELECT delivery_rate_pct FROM funnel_conversion WHERE data_source = :src",
+        {"src": source},
+    )
+    row = rev[0] if rev else {}
     return {
+        "source": source,
         "total_revenue": round(float(row.get("total_revenue", 0)), 2),
         "total_orders": int(row.get("total_orders", 0)),
         "avg_order_value": round(float(row.get("avg_order_value", 0)), 2),
-        "total_customers": int(customers[0]["total_customers"]) if customers else 0,
-        "delivery_rate_pct": (
-            float(funnel[0]["delivery_rate_pct"]) if funnel else 0.0
-        ),
+        "delivery_rate_pct": float(funnel[0]["delivery_rate_pct"]) if funnel else 0.0,
     }
 
 
 @app.get("/api/revenue/monthly")
-def revenue_monthly() -> list[dict]:
-    """Revenue aggregated by month (computed from daily_revenue)."""
+def revenue_monthly(source: str = "olist") -> list[dict]:
+    """Revenue aggregated by month for a data source."""
     return _query(
         "SELECT to_char(date_trunc('month', order_date), 'YYYY-MM') AS month, "
         "ROUND(SUM(revenue)::numeric, 2) AS revenue, SUM(orders) AS orders "
-        "FROM daily_revenue GROUP BY 1 ORDER BY 1"
+        "FROM daily_revenue WHERE data_source = :src GROUP BY 1 ORDER BY 1",
+        {"src": source},
+    )
+
+
+@app.get("/api/funnel")
+def funnel(source: str = "olist") -> dict:
+    """Order funnel for a data source."""
+    rows = _query(
+        "SELECT purchased, approved, shipped, delivered, delivery_rate_pct "
+        "FROM funnel_conversion WHERE data_source = :src",
+        {"src": source},
+    )
+    return rows[0] if rows else {}
+
+
+@app.get("/api/delivery-performance")
+def delivery_performance(source: str = "olist") -> dict:
+    """Delivery performance metrics for a data source."""
+    rows = _query(
+        "SELECT delivered_orders, avg_delivery_days, late_orders, late_rate_pct "
+        "FROM delivery_performance WHERE data_source = :src",
+        {"src": source},
+    )
+    return rows[0] if rows else {}
+
+
+@app.get("/api/review-analysis")
+def review_analysis(source: str = "olist") -> list[dict]:
+    """Review score distribution and late-delivery correlation for a source."""
+    return _query(
+        "SELECT review_score, reviews, pct_late FROM review_analysis "
+        "WHERE data_source = :src ORDER BY review_score",
+        {"src": source},
+    )
+
+
+@app.get("/api/revenue-by-state")
+def revenue_by_state(source: str = "olist") -> list[dict]:
+    """Revenue and orders by Brazilian state, for the choropleth map."""
+    return _query(
+        "SELECT state, orders, revenue FROM revenue_by_state "
+        "WHERE data_source = :src ORDER BY revenue DESC",
+        {"src": source},
     )
 
 
@@ -204,4 +252,23 @@ def sellers_top(limit: int = 10) -> list[dict]:
         "avg_review_score FROM seller_metrics "
         "ORDER BY total_revenue DESC LIMIT :lim",
         {"lim": limit},
+    )
+
+
+@app.get("/api/delivery-performance")
+def delivery_performance(limit: int = 10) -> list[dict]:
+    """Delivery time and late rate by state (top states by volume)."""
+    return _query(
+        "SELECT state, delivered_orders, avg_delivery_days, late_rate_pct "
+        "FROM delivery_performance ORDER BY delivered_orders DESC LIMIT :lim",
+        {"lim": limit},
+    )
+
+
+@app.get("/api/review-analysis")
+def review_analysis() -> list[dict]:
+    """Review score distribution and its relationship to late delivery."""
+    return _query(
+        "SELECT review_score, reviews, late_rate_pct, avg_delivery_days "
+        "FROM review_analysis ORDER BY review_score"
     )

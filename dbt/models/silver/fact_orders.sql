@@ -21,6 +21,7 @@ select
     o.order_estimated_delivery_date,
     o.ab_experiment,
     o.ab_variant,
+    o._data_source AS data_source,
     date_diff('day', o.order_purchase_timestamp, o.order_delivered_customer_date)
         as delivery_days,
     case

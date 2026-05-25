@@ -58,7 +58,9 @@ def write_bronze(
             [table],
         ).fetchone()
         if exists and exists[0] > 0:
-            con.execute(f"INSERT INTO {fq} SELECT * FROM _staging_df;")
+            # Insert by column name (not position) so appends are robust to
+            # column ordering differences between batches.
+            con.execute(f"INSERT INTO {fq} BY NAME SELECT * FROM _staging_df;")
         else:
             con.execute(f"CREATE TABLE {fq} AS SELECT * FROM _staging_df;")
 

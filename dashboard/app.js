@@ -7,8 +7,8 @@
 // (e.g. Render cold start on first load).
 
 const fmtMoney = (n) =>
-  "A$" + Number(n).toLocaleString("en-AU", { maximumFractionDigits: 0 });
-const fmtNum = (n) => Number(n).toLocaleString("en-AU");
+  "R$" + Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+const fmtNum = (n) => Number(n).toLocaleString("pt-BR");
 
 async function apiGet(path) {
   const base = CONFIG.API_BASE.replace(/\/+$/, ""); // strip trailing slash(es)
@@ -43,7 +43,7 @@ async function loadKpis() {
     const cards = [
       { label: "Total Revenue", value: fmtMoney(k.total_revenue), sub: "delivered orders" },
       { label: "Total Orders", value: fmtNum(k.total_orders), sub: "all time" },
-      { label: "Avg Order Value", value: "A$" + Number(k.avg_order_value).toFixed(0), sub: "per order" },
+      { label: "Avg Order Value", value: "R$" + Number(k.avg_order_value).toFixed(0), sub: "per order" },
       { label: "Customers", value: fmtNum(k.total_customers), sub: "unique" },
       { label: "Delivery Rate", value: Number(k.delivery_rate_pct).toFixed(1) + "%", sub: "fulfilment" },
     ];
@@ -75,7 +75,7 @@ async function loadRevenue() {
           .map(
             (r) =>
               `<tr><td style="padding:8px 0;color:#8b8f9a">${r.month}</td>` +
-              `<td style="padding:8px 0;text-align:right">A$${Number(r.revenue).toLocaleString("en-AU", { maximumFractionDigits: 0 })}</td>` +
+              `<td style="padding:8px 0;text-align:right">R$${Number(r.revenue).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</td>` +
               `<td style="padding:8px 0;text-align:right;color:#8b8f9a">${r.orders} orders</td></tr>`
           )
           .join("") +
@@ -89,7 +89,7 @@ async function loadRevenue() {
         labels,
         datasets: [
           {
-            label: "Revenue (A$)",
+            label: "Revenue (R$)",
             data,
             borderColor: "#e8a33d",
             backgroundColor: "rgba(232,163,61,0.12)",
@@ -111,7 +111,7 @@ async function loadRevenue() {
             ticks: {
               color: "#8b8f9a",
               font: { family: "JetBrains Mono" },
-              callback: (v) => "A$" + (v / 1000).toFixed(0) + "k",
+              callback: (v) => "R$" + (v / 1000).toFixed(0) + "k",
             },
           },
         },
@@ -137,9 +137,9 @@ async function loadAbTests() {
         return (
           `<div class="ab-card"><h3>${exp.experiment.replace(/_/g, " ")}</h3>` +
           `<div class="variant-row"><span class="variant-tag">Variant A</span>` +
-          `<span class="variant-val">A$${Number(a.avg_order_value || 0).toFixed(0)} AOV · ${fmtNum(a.orders || 0)} orders</span></div>` +
+          `<span class="variant-val">R$${Number(a.avg_order_value || 0).toFixed(0)} AOV · ${fmtNum(a.orders || 0)} orders</span></div>` +
           `<div class="variant-row"><span class="variant-tag">Variant B</span>` +
-          `<span class="variant-val">A$${Number(b.avg_order_value || 0).toFixed(0)} AOV · ${fmtNum(b.orders || 0)} orders</span></div>` +
+          `<span class="variant-val">R$${Number(b.avg_order_value || 0).toFixed(0)} AOV · ${fmtNum(b.orders || 0)} orders</span></div>` +
           `<div class="lift"><span>AOV lift (B vs A)</span><span class="${liftCls}">${liftTxt}</span></div></div>`
         );
       })
@@ -255,7 +255,7 @@ async function loadLtv() {
             (r) =>
               `<tr><td style="padding:8px 0;color:#8b8f9a">RFM ${r.rfm_total}</td>` +
               `<td style="padding:8px 0;text-align:right">${fmtNum(r.customers)} customers</td>` +
-              `<td style="padding:8px 0;text-align:right;color:#8b8f9a">A$${Number(r.avg_monetary).toFixed(0)} avg</td></tr>`
+              `<td style="padding:8px 0;text-align:right;color:#8b8f9a">R$${Number(r.avg_monetary).toFixed(0)} avg</td></tr>`
           )
           .join("") +
         "</table>";
@@ -292,9 +292,95 @@ async function loadLtv() {
   }
 }
 
+// 8. Delivery performance (FastAPI: /api/delivery-performance)
+async function loadDelivery() {
+  try {
+    const rows = await apiGet("/api/delivery-performance?limit=10");
+    const trs = rows
+      .map(
+        (d) =>
+          `<tr><td><span class="state-tag">${d.state}</span></td>` +
+          `<td class="num">${fmtNum(d.delivered_orders)}</td>` +
+          `<td class="num">${Number(d.avg_delivery_days).toFixed(1)} days</td>` +
+          `<td class="num">${Number(d.late_rate_pct).toFixed(1)}%</td></tr>`
+      )
+      .join("");
+    document.getElementById("delivery").innerHTML =
+      `<table class="seller-table"><thead><tr>` +
+      `<th>State</th><th class="num">Delivered</th>` +
+      `<th class="num">Avg Time</th><th class="num">Late Rate</th>` +
+      `</tr></thead><tbody>${trs}</tbody></table>`;
+  } catch (e) {
+    showError("delivery", "Could not load delivery performance.");
+  }
+}
+
+// 9. Review analysis (FastAPI: /api/review-analysis)
+async function loadReview() {
+  try {
+    const rows = await apiGet("/api/review-analysis");
+    const labels = rows.map((r) => r.review_score + "★");
+    const lateRates = rows.map((r) => Number(r.late_rate_pct));
+    if (typeof Chart === "undefined") {
+      document.querySelector("#review-chart").parentElement.innerHTML =
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<tr style="color:#8b8f9a"><td>Score</td><td style="text-align:right">Reviews</td><td style="text-align:right">Late rate</td></tr>' +
+        rows
+          .map(
+            (r) =>
+              `<tr><td style="padding:6px 0">${r.review_score}★</td>` +
+              `<td style="padding:6px 0;text-align:right">${fmtNum(r.reviews)}</td>` +
+              `<td style="padding:6px 0;text-align:right;color:#e8a33d">${r.late_rate_pct}%</td></tr>`
+          )
+          .join("") +
+        "</table>";
+      return;
+    }
+    new Chart(document.getElementById("review-chart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Late delivery rate (%)",
+            data: lateRates,
+            backgroundColor: "rgba(232,163,61,0.6)",
+            borderColor: "#e8a33d",
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: "Lower review scores correlate with late delivery",
+            color: "#8b8f9a",
+            font: { family: "JetBrains Mono", size: 12 },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#8b8f9a", font: { family: "JetBrains Mono" } } },
+          y: {
+            grid: { color: "#2a2e37" },
+            ticks: { color: "#8b8f9a", font: { family: "JetBrains Mono" }, callback: (v) => v + "%" },
+          },
+        },
+      },
+    });
+  } catch (e) {
+    document.querySelector("#review-chart").parentElement.innerHTML =
+      `<div class="error">Could not load review analysis. ${e.message}</div>`;
+  }
+}
+
 function init() {
   document.getElementById("last-updated").textContent =
-    "● Loaded " + new Date().toLocaleDateString("en-AU");
+    "● Loaded " + new Date().toLocaleDateString("pt-BR");
   loadKpis();
   loadRevenue();
   loadAbTests();
@@ -302,6 +388,8 @@ function init() {
   loadCohort();
   loadSellers();
   loadLtv();
+  loadDelivery();
+  loadReview();
 }
 
 document.addEventListener("DOMContentLoaded", init);

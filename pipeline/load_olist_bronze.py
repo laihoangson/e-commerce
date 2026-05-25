@@ -83,7 +83,7 @@ def load_products() -> pd.DataFrame:
             "product_height_cm": num("product_height_cm"),
             "product_width_cm": num("product_width_cm"),
             # Olist has no base_price; derive a reference later if needed.
-            "base_price": pd.NA,
+            "base_price": pd.Series([pd.NA] * len(df), dtype="Float64"),
         }
     )
 
@@ -114,8 +114,8 @@ def load_orders() -> pd.DataFrame:
             "order_delivered_carrier_date": ts("order_delivered_carrier_date"),
             "order_delivered_customer_date": ts("order_delivered_customer_date"),
             "order_estimated_delivery_date": ts("order_estimated_delivery_date"),
-            "ab_experiment": pd.NA,  # real data has no experiment
-            "ab_variant": pd.NA,
+            "ab_experiment": pd.Series([pd.NA] * len(df), dtype="string"),
+            "ab_variant": pd.Series([pd.NA] * len(df), dtype="string"),
         }
     )
 

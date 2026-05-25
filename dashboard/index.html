@@ -237,7 +237,7 @@
         <span class="tagline">See your business through the right lens.</span>
       </div>
       <div class="meta-row">
-        <span><span class="dot">●</span> Australian e-commerce</span>
+        <span><span class="dot">●</span> Brazilian e-commerce (Olist)</span>
         <span><span class="dot">●</span> Medallion pipeline</span>
         <span><span class="dot">●</span> $0 free-tier stack</span>
         <span id="last-updated"></span>
@@ -272,6 +272,11 @@
         <span class="section-num">03</span>
         <h2>A/B Experiments</h2>
       </div>
+      <p style="color:var(--muted);font-size:12px;margin:-8px 0 16px">
+        Experiments run only on the synthetic live period (2024-2026); the
+        historical Olist data carries no experiments. The welcome_voucher effect
+        is a designed +15% uplift, free_shipping is a null control.
+      </p>
       <div class="ab-grid" id="ab-grid">
         <div class="loading">Loading experiments…</div>
       </div>
@@ -331,8 +336,40 @@
       </div>
     </section>
 
+    <!-- 8. Delivery performance -->
+    <section class="section reveal" style="animation-delay:0.4s">
+      <div class="section-head">
+        <span class="section-num">08</span>
+        <h2>Delivery Performance</h2>
+      </div>
+      <div class="panel">
+        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">
+          Average delivery time and late rate by customer state. São Paulo (SP),
+          near the logistics hub, delivers fastest.
+        </p>
+        <div id="delivery">
+          <div class="loading">Loading delivery data…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Review analysis -->
+    <section class="section reveal" style="animation-delay:0.45s">
+      <div class="section-head">
+        <span class="section-num">09</span>
+        <h2>Reviews vs Delivery</h2>
+      </div>
+      <div class="panel">
+        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">
+          A clear signal in the real data: late deliveries drive low review
+          scores. 1-star orders are late far more often than 5-star ones.
+        </p>
+        <div class="chart-box"><canvas id="review-chart"></canvas></div>
+      </div>
+    </section>
+
     <footer>
-      <span>RetailLens — synthetic AU data, calibrated to real distributions</span>
+      <span>RetailLens — real Olist data (2016-2018) + synthetic live tail (2024-2026)</span>
       <span>DuckDB · dbt · Supabase · FastAPI · Chart.js</span>
     </footer>
   </div>
