@@ -1,0 +1,17 @@
+# Dependencies for the RAG / NLI offline job (run locally or in CI, NOT on Render).
+#
+# These are heavy (PyTorch + a transformer model) and only needed when
+# generating chart interpretations. The serving API never imports them.
+#
+# IMPORTANT - Windows TensorFlow crash:
+# Recent `transformers` releases may try to import TensorFlow during model
+# loading, which fails with a DLL error on many Windows machines. We do not use
+# TensorFlow. The scripts set USE_TF=0 to prevent this, but if you still hit a
+# TensorFlow import error, simply uninstall it:
+#     pip uninstall -y tensorflow tensorflow-intel keras
+# PyTorch alone is sufficient.
+
+groq==0.13.1
+sentence-transformers==3.3.1
+# torch is pulled in by sentence-transformers; if you need to pin it:
+# torch>=2.2,<3

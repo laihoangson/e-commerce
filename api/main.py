@@ -366,6 +366,42 @@ def recommend(customer_id: str, n: int = 10) -> dict:
             "recommendations": art.get("top_popular", [])[:n]}
 
 
+@lru_cache(maxsize=1)
+def _interpretations_artifact() -> dict:
+    return _json.loads(
+        _download_artifact_bytes("chart_interpretations.json").decode("utf-8")
+    )
+
+
+@app.get("/api/interpretations")
+def interpretations() -> dict:
+    """Precomputed, NLI-verified natural-language interpretations per chart.
+
+    Keyed as '<tab>:<chart>' (e.g. 'real:revenue', 'live:ab'). Each entry has
+    claims with a 'verified' flag set by the offline NLI verifier.
+    """
+    try:
+        return _interpretations_artifact().get("charts", {})
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(503, f"Interpretations unavailable: {str(exc)[:120]}")
+
+
+@lru_cache(maxsize=1)
+def _monitoring_artifact() -> dict:
+    return _json.loads(
+        _download_artifact_bytes("monitoring_report.json").decode("utf-8")
+    )
+
+
+@app.get("/api/monitoring")
+def monitoring() -> dict:
+    """Observability report: drift (PSI/KS), SLI/SLO, and model metrics."""
+    try:
+        return _monitoring_artifact()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(503, f"Monitoring report unavailable: {str(exc)[:120]}")
+
+
 @app.get("/api/ab-results")
 def ab_results() -> list[dict]:
     """Served A/B statistical results (computed offline by the analysis job)."""

@@ -238,6 +238,7 @@ function loadLiveTab() {
   loadAbTests("ab-live");
   loadFunnel("faker_live", "funnel-live");
   loadMap("faker_live", "map-live", "legend-live");
+  setTimeout(attachLiveInterpretations, 1500);
 }
 
 function initTabs() {
@@ -249,14 +250,119 @@ function initTabs() {
       const tab = btn.dataset.tab;
       document.getElementById("panel-" + tab).classList.add("active");
       if (tab === "live") loadLiveTab();
+      else if (tab === "health") loadHealthTab();
       else Object.values(maps).forEach((m) => setTimeout(() => m.invalidateSize(), 100));
     });
   });
 }
 
-function init() {
+let interpretationsCache = null;
+async function loadInterpretations() {
+  try {
+    interpretationsCache = await apiGet("/api/interpretations");
+  } catch (e) {
+    interpretationsCache = {};
+  }
+}
+
+// Render the AI interpretation block for a chart key into a target panel.
+function renderInterpretation(key, panelEl) {
+  if (!interpretationsCache || !panelEl) return;
+  const data = interpretationsCache[key];
+  if (!data || !data.claims || !data.claims.length) return;
+  const s = data.summary || {};
+  const items = data.claims
+    .map((c) => {
+      const cls = c.verified ? "claim-ok" : "claim-flag";
+      const tag = c.verified ? "verified" : "unverified";
+      return `<li><span class="claim-badge ${cls}">${tag}</span><span>${c.text}</span></li>`;
+    })
+    .join("");
+  const block = document.createElement("div");
+  block.className = "interp";
+  block.innerHTML =
+    `<div class="interp-head"><span class="ai-tag">AI interpretation</span>` +
+    `<span class="verify-summary">${s.verified_claims || 0}/${s.total_claims || 0} claims NLI-verified</span></div>` +
+    `<ul>${items}</ul>`;
+  panelEl.appendChild(block);
+}
+
+function attachRealInterpretations() {
+  renderInterpretation("real:revenue", document.getElementById("rev-real")?.closest(".panel"));
+  renderInterpretation("real:state", document.getElementById("map-real")?.closest(".panel"));
+  renderInterpretation("real:funnel", document.getElementById("funnel-real")?.closest(".panel"));
+  renderInterpretation("real:delivery", document.getElementById("delivery-real")?.closest(".panel"));
+  renderInterpretation("real:review", document.getElementById("review-real")?.closest(".panel"));
+}
+function attachLiveInterpretations() {
+  renderInterpretation("live:revenue", document.getElementById("rev-live")?.closest(".panel"));
+  renderInterpretation("live:ab", document.getElementById("ab-live")?.closest(".section"));
+  renderInterpretation("live:funnel", document.getElementById("funnel-live")?.closest(".panel"));
+  renderInterpretation("live:state", document.getElementById("map-live")?.closest(".panel"));
+}
+
+let healthLoaded = false;
+async function loadHealthTab() {
+  if (healthLoaded) return;
+  healthLoaded = true;
+  try {
+    const m = await apiGet("/api/monitoring");
+    renderSlis(m);
+    renderDrift(m);
+    renderModelMetrics(m);
+  } catch (e) {
+    showError("slis", "Monitoring report unavailable. Run the monitoring job and redeploy.");
+    document.getElementById("drift").innerHTML = "";
+    document.getElementById("model-metrics").innerHTML = "";
+  }
+}
+
+function renderSlis(m) {
+  const slis = m.slis || [];
+  const cards = slis.map((s) => {
+    const cls = s.met ? "met" : "breached";
+    const badge = s.met ? "status-met" : "status-breached";
+    const name = s.name.replace(/_/g, " ");
+    return `<div class="sli-card ${cls}"><span class="sli-status ${badge}">${s.met ? "met" : "breached"}</span>` +
+      `<div class="sli-name">${name}</div><div class="sli-value">${s.value}${s.unit}</div>` +
+      `<div class="sli-obj">SLO: ${s.objective}</div></div>`;
+  }).join("");
+  const summary = `<div class="note" style="margin-bottom:16px">${m.slo_met}/${m.slo_total} objectives met.</div>`;
+  document.getElementById("slis").innerHTML = summary + `<div class="sli-grid">${cards}</div>`;
+}
+
+function renderDrift(m) {
+  const d = m.drift || {};
+  const feats = d.features || [];
+  const maxPsi = Math.max(...feats.map((f) => f.psi), 0.3);
+  const rows = feats.map((f) => {
+    const w = Math.min(100, (f.psi / maxPsi) * 100);
+    const bandCls = "psi-" + f.psi_band;
+    const badgeCls = f.drifted ? "claim-flag" : "claim-ok";
+    return `<div class="drift-row"><span class="dfeat">${f.feature}</span>` +
+      `<div class="psi-track"><div class="psi-fill ${bandCls}" style="width:${w}%"></div></div>` +
+      `<span class="dks">PSI ${f.psi} &middot; KS ${f.ks_statistic}</span>` +
+      `<span class="drift-badge ${badgeCls}">${f.psi_band}</span></div>`;
+  }).join("");
+  const head = `<div class="note" style="margin-bottom:6px">${d.reference} (reference) vs ${d.current} (current) &middot; ${d.drifted_count}/${d.total_features} features drifted</div>`;
+  document.getElementById("drift").innerHTML = head + rows;
+}
+
+function renderModelMetrics(m) {
+  const models = m.models || {};
+  const rows = Object.entries(models).map(([name, met]) => {
+    const pairs = Object.entries(met).filter(([k]) => !["trained_at", "status", "error"].includes(k));
+    const cells = pairs.map(([k, v]) => `<span style="color:var(--muted)">${k.replace(/_/g, " ")}:</span> ${v}`).join("  &middot;  ");
+    return `<div class="metric-row"><span class="m-label">${name}</span><span class="m-val" style="font-size:12px">${cells || met.status || "-"}</span></div>`;
+  }).join("");
+  document.getElementById("model-metrics").innerHTML = rows || '<div class="note">No model metrics available.</div>';
+}
+
+async function init() {
   document.getElementById("last-updated").textContent = "\u25CF Loaded " + new Date().toLocaleDateString("pt-BR");
   initTabs();
+  await loadInterpretations();
   loadRealTab();
+  setTimeout(attachRealInterpretations, 1500);
 }
 document.addEventListener("DOMContentLoaded", init);
