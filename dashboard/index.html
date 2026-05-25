@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RetailLens — E-commerce Intelligence</title>
+  <title>RetailLens - E-commerce Intelligence</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,366 +11,218 @@
     href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap"
     rel="stylesheet"
   />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     :root {
-      --bg: #0e0f12;
-      --panel: #16181d;
-      --panel-2: #1c1f26;
-      --line: #2a2e37;
-      --ink: #f3f1ea;
-      --muted: #8b8f9a;
-      --accent: #e8a33d;
-      --accent-soft: rgba(232, 163, 61, 0.14);
-      --green: #6fcf97;
-      --red: #eb6f6f;
+      --bg: #0e0f12; --panel: #16181d; --panel-2: #1c1f26; --line: #2a2e37;
+      --ink: #f3f1ea; --muted: #8b8f9a; --accent: #e8a33d;
+      --green: #6fcf97; --red: #eb6f6f;
       --mono: "JetBrains Mono", ui-monospace, monospace;
       --display: "Fraunces", Georgia, serif;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background:
-        radial-gradient(900px 500px at 85% -10%, rgba(232,163,61,0.08), transparent 60%),
-        var(--bg);
-      color: var(--ink);
-      font-family: var(--mono);
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-      padding: 0 0 80px;
+      background: radial-gradient(900px 500px at 85% -10%, rgba(232,163,61,0.08), transparent 60%), var(--bg);
+      color: var(--ink); font-family: var(--mono);
+      -webkit-font-smoothing: antialiased; min-height: 100vh; padding: 0 0 80px;
     }
-
     .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 
-    /* Header */
-    header {
-      border-bottom: 1px solid var(--line);
-      padding: 38px 0 26px;
-      margin-bottom: 40px;
-    }
-    .brand {
-      display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
-    }
-    .brand h1 {
-      font-family: var(--display);
-      font-weight: 900;
-      font-size: clamp(34px, 5vw, 52px);
-      letter-spacing: -0.02em;
-      line-height: 0.95;
-    }
+    header { border-bottom: 1px solid var(--line); padding: 38px 0 0; }
+    .brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .brand h1 { font-family: var(--display); font-weight: 900; font-size: clamp(32px,5vw,48px); letter-spacing: -0.02em; line-height: 0.95; }
     .brand .lens { color: var(--accent); font-style: italic; }
-    .tagline {
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      margin-top: 10px;
-    }
-    .meta-row {
-      display: flex; gap: 18px; margin-top: 18px; flex-wrap: wrap;
-      font-size: 11px; color: var(--muted); letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+    .tagline { color: var(--muted); font-size: 13px; letter-spacing: 0.04em; margin-top: 10px; }
+    .meta-row { display: flex; gap: 18px; margin: 16px 0 22px; flex-wrap: wrap; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
     .meta-row .dot { color: var(--accent); }
 
-    /* Section heading */
-    .section { margin-bottom: 52px; }
-    .section-head {
-      display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px;
-    }
-    .section-num {
-      font-size: 11px; color: var(--accent); letter-spacing: 0.15em;
-    }
-    .section-head h2 {
-      font-family: var(--display);
-      font-weight: 600; font-size: 22px; letter-spacing: -0.01em;
-    }
+    .tabs { display: flex; gap: 4px; }
+    .tab { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; padding: 14px 22px; cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s; }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab .sub { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
 
-    /* KPI grid */
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 14px;
-    }
-    .kpi {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 22px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    .kpi::before {
-      content: ""; position: absolute; left: 0; top: 0; bottom: 0;
-      width: 3px; background: var(--accent); opacity: 0.7;
-    }
-    .kpi .label {
-      font-size: 11px; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.1em;
-    }
-    .kpi .value {
-      font-family: var(--display); font-weight: 900;
-      font-size: 30px; margin-top: 10px; letter-spacing: -0.02em;
-    }
+    .tab-panel { display: none; padding-top: 36px; }
+    .tab-panel.active { display: block; }
+
+    .section { margin-bottom: 48px; }
+    .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+    .section-num { font-size: 11px; color: var(--accent); letter-spacing: 0.15em; }
+    .section-head h2 { font-family: var(--display); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 14px; }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; position: relative; overflow: hidden; }
+    .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: 0.7; }
+    .kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .kpi .value { font-family: var(--display); font-weight: 900; font-size: 28px; margin-top: 10px; letter-spacing: -0.02em; }
     .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
-    /* Panels */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .chart-box { height: 340px; position: relative; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+    .chart-box { height: 320px; position: relative; overflow: auto; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
 
-    /* A/B cards */
-    .ab-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-    }
-    .ab-card {
-      background: var(--panel); border: 1px solid var(--line);
-      border-radius: 14px; padding: 22px;
-    }
-    .ab-card h3 {
-      font-family: var(--mono); font-size: 13px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent);
-      margin-bottom: 16px;
-    }
-    .variant-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 0; border-bottom: 1px solid var(--line);
-    }
+    #map-real, #map-live { height: 460px; border-radius: 12px; background: var(--panel-2); }
+    .leaflet-container { background: #11131a; font-family: var(--mono); }
+    .map-legend { font-size: 11px; color: var(--muted); margin-top: 10px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+
+    .ab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 16px; }
+    .ab-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    .ab-card h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 16px; }
+    .variant-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
     .variant-row:last-of-type { border-bottom: none; }
-    .variant-tag {
-      font-size: 11px; padding: 2px 8px; border-radius: 6px;
-      background: var(--panel-2); color: var(--muted);
-    }
-    .variant-val { font-size: 15px; font-weight: 500; }
-    .lift {
-      margin-top: 14px; font-size: 13px; display: flex;
-      justify-content: space-between; align-items: center;
-    }
-    .lift .up { color: var(--green); }
-    .lift .down { color: var(--red); }
+    .variant-tag { font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--panel-2); color: var(--muted); }
+    .lift { margin-top: 14px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+    .lift .up { color: var(--green); } .lift .down { color: var(--red); }
+    .sig-badge { font-size: 10px; padding: 3px 9px; border-radius: 6px; letter-spacing: 0.05em; }
+    .sig-yes { background: rgba(111,207,151,0.16); color: var(--green); }
+    .sig-no { background: var(--panel-2); color: var(--muted); }
 
-    /* Funnel */
     .funnel { display: flex; flex-direction: column; gap: 10px; }
-    .funnel-step {
-      display: grid; grid-template-columns: 130px 1fr 90px;
-      align-items: center; gap: 14px;
-    }
-    .funnel-step .name {
-      font-size: 12px; color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .bar-track {
-      background: var(--panel-2); border-radius: 8px; height: 30px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%; background: linear-gradient(90deg, var(--accent), #f0c070);
-      border-radius: 8px; width: 0; transition: width 1s ease;
-    }
-    .funnel-step .count {
-      font-size: 13px; text-align: right; font-weight: 500;
-    }
+    .funnel-step { display: grid; grid-template-columns: 120px 1fr 90px; align-items: center; gap: 14px; }
+    .funnel-step .name { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .bar-track { background: var(--panel-2); border-radius: 8px; height: 30px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #f0c070); border-radius: 8px; width: 0; transition: width 1s ease; }
+    .funnel-step .count { font-size: 13px; text-align: right; font-weight: 500; }
 
-    .loading { color: var(--muted); font-size: 13px; padding: 20px 0; }
-    .error {
-      color: var(--red); font-size: 12px; padding: 14px;
-      border: 1px solid rgba(235,111,111,0.3); border-radius: 10px;
-      background: rgba(235,111,111,0.06);
-    }
+    .metric-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-row .m-label { color: var(--muted); }
+    .metric-row .m-val { font-weight: 500; }
 
-    /* Cohort heatmap */
-    .heat { border-collapse: collapse; font-size: 11px; }
-    .heat th {
-      color: var(--muted); font-weight: 400; padding: 6px 8px;
-      text-align: center; letter-spacing: 0.04em;
-    }
-    .heat th.cohort-h { text-align: left; }
-    .heat td { padding: 2px; text-align: center; }
-    .heat td.cohort-label {
-      color: var(--muted); text-align: left; padding: 0 12px 0 4px;
-      white-space: nowrap; font-size: 11px;
-    }
-    .heat .cell {
-      border-radius: 4px; color: #1a1205; font-size: 10px; font-weight: 500;
-      width: 44px; height: 26px; line-height: 26px; text-align: center;
-    }
-
-    /* Seller table */
     .seller-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .seller-table th {
-      text-align: left; color: var(--muted); font-weight: 400;
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-      padding: 10px 12px; border-bottom: 1px solid var(--line);
-    }
+    .seller-table th { text-align: left; color: var(--muted); font-weight: 400; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 12px; border-bottom: 1px solid var(--line); }
     .seller-table th.num, .seller-table td.num { text-align: right; }
     .seller-table td { padding: 11px 12px; border-bottom: 1px solid var(--line); }
     .seller-table tr:last-child td { border-bottom: none; }
     .seller-table .rank { color: var(--accent); font-weight: 700; }
     .seller-table .sid { font-size: 11px; color: var(--muted); }
-    .state-tag {
-      font-size: 10px; padding: 2px 7px; border-radius: 5px;
-      background: var(--panel-2); color: var(--muted);
-    }
+    .state-tag { font-size: 10px; padding: 2px 7px; border-radius: 5px; background: var(--panel-2); color: var(--muted); }
 
-    footer {
-      border-top: 1px solid var(--line); margin-top: 30px; padding-top: 22px;
-      color: var(--muted); font-size: 11px; letter-spacing: 0.05em;
-      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-    }
+    .heat { border-collapse: collapse; font-size: 11px; }
+    .heat th { color: var(--muted); font-weight: 400; padding: 6px 8px; text-align: center; }
+    .heat th.cohort-h { text-align: left; }
+    .heat td { padding: 2px; text-align: center; }
+    .heat td.cohort-label { color: var(--muted); text-align: left; padding: 0 12px 0 4px; white-space: nowrap; font-size: 11px; }
+    .heat .cell { border-radius: 4px; font-size: 10px; font-weight: 500; width: 44px; height: 26px; line-height: 26px; text-align: center; }
 
-    /* staggered reveal */
-    .reveal { opacity: 0; transform: translateY(12px); animation: rise 0.6s ease forwards; }
-    @keyframes rise { to { opacity: 1; transform: none; } }
+    .loading { color: var(--muted); font-size: 13px; padding: 20px 0; }
+    .error { color: var(--red); font-size: 12px; padding: 14px; border: 1px solid rgba(235,111,111,0.3); border-radius: 10px; background: rgba(235,111,111,0.06); }
+    .note { color: var(--muted); font-size: 12px; margin-bottom: 16px; line-height: 1.6; }
+
+    footer { border-top: 1px solid var(--line); margin-top: 30px; padding-top: 22px; color: var(--muted); font-size: 11px; letter-spacing: 0.05em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="reveal">
+    <header>
       <div class="brand">
         <h1>Retail<span class="lens">Lens</span></h1>
         <span class="tagline">See your business through the right lens.</span>
       </div>
       <div class="meta-row">
-        <span><span class="dot">●</span> Brazilian e-commerce (Olist)</span>
-        <span><span class="dot">●</span> Medallion pipeline</span>
-        <span><span class="dot">●</span> $0 free-tier stack</span>
+        <span><span class="dot">&#9679;</span> Brazilian e-commerce (Olist)</span>
+        <span><span class="dot">&#9679;</span> Medallion pipeline</span>
+        <span><span class="dot">&#9679;</span> $0 free-tier stack</span>
         <span id="last-updated"></span>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="real" data-source="olist">
+          Real Data <span class="sub">Olist 2016-2018</span>
+        </button>
+        <button class="tab" data-tab="live" data-source="faker_live">
+          Live (Synthetic) <span class="sub">2024-2026</span>
+        </button>
       </div>
     </header>
 
-    <!-- 1. Overview KPIs -->
-    <section class="section reveal" style="animation-delay:0.05s">
-      <div class="section-head">
-        <span class="section-num">01</span>
-        <h2>Overview</h2>
-      </div>
-      <div class="kpis" id="kpi-grid">
-        <div class="loading">Loading KPIs…</div>
-      </div>
-    </section>
-
-    <!-- 2. Revenue -->
-    <section class="section reveal" style="animation-delay:0.1s">
-      <div class="section-head">
-        <span class="section-num">02</span>
-        <h2>Monthly Revenue</h2>
-      </div>
-      <div class="panel">
-        <div class="chart-box"><canvas id="revenue-chart"></canvas></div>
-      </div>
-    </section>
-
-    <!-- 3. A/B tests -->
-    <section class="section reveal" style="animation-delay:0.15s">
-      <div class="section-head">
-        <span class="section-num">03</span>
-        <h2>A/B Experiments</h2>
-      </div>
-      <p style="color:var(--muted);font-size:12px;margin:-8px 0 16px">
-        Experiments run only on the synthetic live period (2024-2026); the
-        historical Olist data carries no experiments. The welcome_voucher effect
-        is a designed +15% uplift, free_shipping is a null control.
-      </p>
-      <div class="ab-grid" id="ab-grid">
-        <div class="loading">Loading experiments…</div>
-      </div>
-    </section>
-
-    <!-- 4. Funnel -->
-    <section class="section reveal" style="animation-delay:0.2s">
-      <div class="section-head">
-        <span class="section-num">04</span>
-        <h2>Order Funnel</h2>
-      </div>
-      <div class="panel">
-        <div class="funnel" id="funnel">
-          <div class="loading">Loading funnel…</div>
+    <div class="tab-panel active" id="panel-real">
+      <section class="section">
+        <div class="section-head"><span class="section-num">01</span><h2>Overview</h2></div>
+        <div class="note">Real transaction data from Olist, a Brazilian marketplace (Sept 2016 - Oct 2018). All monetary values in BRL (R$).</div>
+        <div class="kpis" id="kpi-real"><div class="loading">Loading...</div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">02</span><h2>Monthly Revenue</h2></div>
+        <div class="panel"><div class="chart-box"><canvas id="rev-real"></canvas></div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">03</span><h2>Revenue by State</h2></div>
+        <div class="panel">
+          <div class="note">Revenue across Brazilian states. Sao Paulo (SP) dominates - typical of Olist's geography.</div>
+          <div id="map-real"></div>
+          <div class="map-legend" id="legend-real"></div>
         </div>
-      </div>
-    </section>
-
-    <!-- 5. Cohort retention -->
-    <section class="section reveal" style="animation-delay:0.25s">
-      <div class="section-head">
-        <span class="section-num">05</span>
-        <h2>Cohort Retention</h2>
-      </div>
-      <div class="panel">
-        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">
-          % of each monthly cohort still active N months after first purchase.
-          Low retention reflects the one-and-done nature of the dataset (calibrated to real distributions).
-        </p>
-        <div id="cohort" style="overflow-x:auto">
-          <div class="loading">Loading cohorts…</div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">04</span><h2>Order Funnel</h2></div>
+        <div class="panel"><div class="funnel" id="funnel-real"><div class="loading">Loading...</div></div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">05</span><h2>Delivery &amp; Reviews</h2></div>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="note">Delivery performance.</div>
+            <div id="delivery-real"><div class="loading">Loading...</div></div>
+          </div>
+          <div class="panel">
+            <div class="note">Review score vs late-delivery rate. Late orders correlate with low scores.</div>
+            <div class="chart-box" style="height:260px"><canvas id="review-real"></canvas></div>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <!-- 6. Top sellers -->
-    <section class="section reveal" style="animation-delay:0.3s">
-      <div class="section-head">
-        <span class="section-num">06</span>
-        <h2>Top Sellers</h2>
-      </div>
-      <div class="panel">
-        <div id="sellers">
-          <div class="loading">Loading sellers…</div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">06</span><h2>Cohort Retention</h2></div>
+        <div class="panel">
+          <div class="note">% of each monthly cohort still active N months after first purchase. Low retention reflects Olist's one-and-done nature.</div>
+          <div id="cohort-real" style="overflow-x:auto"><div class="loading">Loading...</div></div>
         </div>
-      </div>
-    </section>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">07</span><h2>Top Sellers</h2></div>
+        <div class="panel"><div id="sellers-real"><div class="loading">Loading...</div></div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">08</span><h2>Customer Value Segments</h2></div>
+        <div class="panel"><div class="chart-box"><canvas id="ltv-real"></canvas></div></div>
+      </section>
+    </div>
 
-    <!-- 7. Customer LTV segments -->
-    <section class="section reveal" style="animation-delay:0.35s">
-      <div class="section-head">
-        <span class="section-num">07</span>
-        <h2>Customer Value Segments</h2>
-      </div>
-      <div class="panel">
-        <div class="chart-box"><canvas id="ltv-chart"></canvas></div>
-      </div>
-    </section>
-
-    <!-- 8. Delivery performance -->
-    <section class="section reveal" style="animation-delay:0.4s">
-      <div class="section-head">
-        <span class="section-num">08</span>
-        <h2>Delivery Performance</h2>
-      </div>
-      <div class="panel">
-        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">
-          Average delivery time and late rate by customer state. São Paulo (SP),
-          near the logistics hub, delivers fastest.
-        </p>
-        <div id="delivery">
-          <div class="loading">Loading delivery data…</div>
+    <div class="tab-panel" id="panel-live">
+      <section class="section">
+        <div class="section-head"><span class="section-num">01</span><h2>Overview</h2></div>
+        <div class="note">Synthetic live tail (2024-2026) continuing the Olist timeline, generated to keep the dashboard current and host controlled A/B experiments. Documented synthetic data by design.</div>
+        <div class="kpis" id="kpi-live"><div class="loading">Loading...</div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">02</span><h2>Monthly Revenue</h2></div>
+        <div class="panel"><div class="chart-box"><canvas id="rev-live"></canvas></div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">03</span><h2>A/B Experiments</h2></div>
+        <div class="note">Controlled experiments on the live stream. welcome_voucher carries a deliberate +15% AOV effect (variant B) to demonstrate detection; free_shipping_threshold is a null control.</div>
+        <div class="ab-grid" id="ab-live"><div class="loading">Loading...</div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">04</span><h2>Order Funnel</h2></div>
+        <div class="panel"><div class="funnel" id="funnel-live"><div class="loading">Loading...</div></div></div>
+      </section>
+      <section class="section">
+        <div class="section-head"><span class="section-num">05</span><h2>Revenue by State</h2></div>
+        <div class="panel">
+          <div id="map-live"></div>
+          <div class="map-legend" id="legend-live"></div>
         </div>
-      </div>
-    </section>
-
-    <!-- 9. Review analysis -->
-    <section class="section reveal" style="animation-delay:0.45s">
-      <div class="section-head">
-        <span class="section-num">09</span>
-        <h2>Reviews vs Delivery</h2>
-      </div>
-      <div class="panel">
-        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">
-          A clear signal in the real data: late deliveries drive low review
-          scores. 1-star orders are late far more often than 5-star ones.
-        </p>
-        <div class="chart-box"><canvas id="review-chart"></canvas></div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <footer>
-      <span>RetailLens — real Olist data (2016-2018) + synthetic live tail (2024-2026)</span>
-      <span>DuckDB · dbt · Supabase · FastAPI · Chart.js</span>
+      <span>RetailLens - Olist real core + synthetic live tail</span>
+      <span>DuckDB &middot; dbt &middot; Supabase &middot; FastAPI &middot; Leaflet</span>
     </footer>
   </div>
 
