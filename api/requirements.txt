@@ -6,3 +6,12 @@ uvicorn[standard]==0.34.0
 sqlalchemy==2.0.36
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
+
+# ML serving (load artifacts from Storage and run inference)
+joblib==1.4.2
+scikit-learn==1.6.1
+xgboost==2.1.3
+scipy==1.15.1
+pandas==2.2.3
+supabase==2.11.0
+pydantic==2.10.4
