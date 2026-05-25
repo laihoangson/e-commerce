@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import sys
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -74,7 +74,7 @@ def _load_pools(con):
     return products, sellers, existing, price_map
 
 
-def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
+def generate_live(con, seed: int = SEED, start=None, end=None) -> dict[str, pd.DataFrame]:
     rng = rp.make_rng(seed)
     fake = Faker("pt_BR")
     Faker.seed(seed)
@@ -82,8 +82,8 @@ def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
     products, sellers, existing, price_map = _load_pools(con)
     existing_idx = np.arange(len(existing))
 
-    start = datetime.fromisoformat(LIVE_START)
-    end = datetime.fromisoformat(LIVE_END)
+    start = datetime.fromisoformat(LIVE_START) if start is None else start
+    end = datetime.fromisoformat(LIVE_END) if end is None else end
 
     orders, items, payments, reviews, customers = [], [], [], [], []
     seen_customers = set()
@@ -231,27 +231,52 @@ def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
 
 
 def main() -> int:
-    batch = f"faker-live-{uuid.uuid4().hex[:8]}"
-    print("=" * 56)
-    print(f"Faker live tail: {LIVE_START} .. {LIVE_END} (~{ORDERS_PER_DAY}/day)")
-    print(f"batch {batch}")
-    print("=" * 56)
+    import argparse
 
+    parser = argparse.ArgumentParser(description="Faker live tail generator")
+    parser.add_argument(
+        "--mode", choices=["backfill", "daily"], default="backfill",
+        help="backfill = full 2024-2026 history; daily = only today's orders",
+    )
+    args = parser.parse_args()
+
+    batch = f"faker-live-{uuid.uuid4().hex[:8]}"
     con = get_connection()
     if not table_exists(con, "bronze", "raw_orders"):
         print("[FAIL] Olist Bronze not found. Run pipeline/load_olist_bronze.py first.")
         con.close()
         return 1
 
-    tables = generate_live(con)
+    if args.mode == "daily":
+        today = datetime.now(timezone.utc).replace(tzinfo=None).replace(hour=0, minute=0, second=0, microsecond=0)
+        # Idempotency: skip if today's live orders already exist.
+        existing_today = con.execute(
+            "SELECT count(*) FROM bronze.raw_orders "
+            "WHERE _data_source = 'faker_live' "
+            "AND cast(order_purchase_timestamp AS DATE) = ?",
+            [today.date()],
+        ).fetchone()[0]
+        if existing_today > 0:
+            print(f"Today ({today.date()}) already has {existing_today} live orders. Skipping.")
+            con.close()
+            return 0
+        # Seed varies by day so each day's orders differ.
+        day_seed = SEED + today.toordinal()
+        print(f"Daily live generation for {today.date()} (seed {day_seed})")
+        tables = generate_live(con, seed=day_seed, start=today, end=today)
+    else:
+        print(f"Backfill live tail: {LIVE_START} .. {LIVE_END} (~{ORDERS_PER_DAY}/day)")
+        tables = generate_live(con)
+
     for table, df in tables.items():
+        if df.empty:
+            continue
         df["_data_source"] = "faker_live"
-        # append to the existing Olist tables
         n = write_bronze(con, df, table, "live_generator", batch, replace=False)
         print(f"  [OK] appended {n} rows to bronze.{table}")
 
     con.close()
-    print("Live tail appended.")
+    print("Live generation complete.")
     return 0
 
 

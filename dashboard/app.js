@@ -159,9 +159,9 @@ async function loadReview(source, canvasId) {
   } catch (e) { document.getElementById(canvasId).parentElement.innerHTML = `<div class="error">Could not load reviews. ${e.message}</div>`; }
 }
 
-async function loadCohort(elId) {
+async function loadCohort(elId, source = "olist") {
   try {
-    const data = await apiGet("/api/cohort-retention?source=olist");
+    const data = await apiGet(`/api/cohort-retention?source=${source}`);
     const heatColor = (v) => v == null ? "var(--panel-2)" : `rgba(232,163,61,${(0.08 + Math.min(1, v/100) * 0.92).toFixed(2)})`;
     const headers = '<th class="cohort-h">Cohort</th>' + Array.from({ length: data.max_offset + 1 }, (_, i) => `<th>M${i}</th>`).join("");
     const body = data.rows.map((row) => {
@@ -226,7 +226,7 @@ function loadRealTab() {
   loadFunnel("olist", "funnel-real");
   loadDelivery("olist", "delivery-real");
   loadReview("olist", "review-real");
-  loadCohort("cohort-real");
+  loadCohort("cohort-real", "olist");
   loadSellers("sellers-real");
   loadLtv("ltv-real");
 }
@@ -238,6 +238,7 @@ function loadLiveTab() {
   loadAbTests("ab-live");
   loadFunnel("faker_live", "funnel-live");
   loadMap("faker_live", "map-live", "legend-live");
+  loadCohort("cohort-live", "faker_live");
   setTimeout(attachLiveInterpretations, 1500);
 }
 

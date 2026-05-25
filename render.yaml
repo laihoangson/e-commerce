@@ -19,3 +19,12 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+      # Required for the ML serving / interpretation / monitoring endpoints to
+      # download artifacts from Supabase Storage. Use the SERVICE key (the
+      # artifacts bucket is private; the anon key cannot read it).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        sync: false
