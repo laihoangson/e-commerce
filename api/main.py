@@ -203,18 +203,19 @@ def ab_tests() -> list[dict]:
 
 
 @app.get("/api/customer-segments")
-def customer_segments() -> list[dict]:
-    """RFM segment counts: customers bucketed by combined R/F/M score."""
+def customer_segments(source: str = "olist") -> list[dict]:
+    """RFM segment counts for a data source."""
     return _query(
         "SELECT (r_score + f_score + m_score) AS rfm_total, "
         "COUNT(*) AS customers, ROUND(AVG(monetary)::numeric, 2) AS avg_monetary "
-        "FROM customer_ltv GROUP BY 1 ORDER BY 1"
+        "FROM customer_ltv WHERE data_source = :src GROUP BY 1 ORDER BY 1",
+        {"src": source},
     )
 
 
 @app.get("/api/cohort-retention")
-def cohort_retention() -> dict:
-    """Cohort retention as a heatmap-ready structure.
+def cohort_retention(source: str = "olist") -> dict:
+    """Cohort retention heatmap for a data source.
 
     Returns retention as a percentage of each cohort's month-0 size, so cohorts
     of different sizes are comparable.
@@ -222,7 +223,9 @@ def cohort_retention() -> dict:
     rows = _query(
         "SELECT to_char(cohort_month, 'YYYY-MM') AS cohort, "
         "month_offset, active_customers "
-        "FROM cohort_retention ORDER BY cohort_month, month_offset"
+        "FROM cohort_retention WHERE data_source = :src "
+        "ORDER BY cohort_month, month_offset",
+        {"src": source},
     )
     # Pivot into {cohort: {offset: count}} and compute size at offset 0.
     cohorts: dict[str, dict[int, int]] = {}
@@ -245,13 +248,13 @@ def cohort_retention() -> dict:
 
 
 @app.get("/api/sellers/top")
-def sellers_top(limit: int = 10) -> list[dict]:
-    """Top sellers by total revenue."""
+def sellers_top(limit: int = 10, source: str = "olist") -> list[dict]:
+    """Top sellers by total revenue for a data source."""
     return _query(
         "SELECT seller_id, seller_state, total_orders, total_revenue, "
-        "avg_review_score FROM seller_metrics "
+        "avg_review_score FROM seller_metrics WHERE data_source = :src "
         "ORDER BY total_revenue DESC LIMIT :lim",
-        {"lim": limit},
+        {"lim": limit, "src": source},
     )
 
 

@@ -163,11 +163,11 @@
         <span id="last-updated"></span>
       </div>
       <div class="tabs">
-        <button class="tab active" data-tab="real" data-source="olist">
-          Real Data <span class="sub">Olist 2016-2018</span>
-        </button>
-        <button class="tab" data-tab="live" data-source="faker_live">
+        <button class="tab active" data-tab="live" data-source="faker_live">
           Live (Synthetic) <span class="sub">2024-2026</span>
+        </button>
+        <button class="tab" data-tab="real" data-source="olist">
+          Real Data <span class="sub">Olist 2016-2018</span>
         </button>
         <button class="tab" data-tab="health" data-source="">
           System Health <span class="sub">drift &middot; SLO</span>
@@ -175,7 +175,7 @@
       </div>
     </header>
 
-    <div class="tab-panel active" id="panel-real">
+    <div class="tab-panel" id="panel-real">
       <section class="section">
         <div class="section-head"><span class="section-num">01</span><h2>Overview</h2></div>
         <div class="note">Real transaction data from Olist, a Brazilian marketplace (Sept 2016 - Oct 2018). All monetary values in BRL (R$).</div>
@@ -227,7 +227,7 @@
       </section>
     </div>
 
-    <div class="tab-panel" id="panel-live">
+    <div class="tab-panel active" id="panel-live">
       <section class="section">
         <div class="section-head"><span class="section-num">01</span><h2>Overview</h2></div>
         <div class="note">Synthetic live tail (2024-2026) continuing the Olist timeline, generated to keep the dashboard current and host controlled A/B experiments. Documented synthetic data by design.</div>

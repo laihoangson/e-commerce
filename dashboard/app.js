@@ -161,7 +161,7 @@ async function loadReview(source, canvasId) {
 
 async function loadCohort(elId) {
   try {
-    const data = await apiGet("/api/cohort-retention");
+    const data = await apiGet("/api/cohort-retention?source=olist");
     const heatColor = (v) => v == null ? "var(--panel-2)" : `rgba(232,163,61,${(0.08 + Math.min(1, v/100) * 0.92).toFixed(2)})`;
     const headers = '<th class="cohort-h">Cohort</th>' + Array.from({ length: data.max_offset + 1 }, (_, i) => `<th>M${i}</th>`).join("");
     const body = data.rows.map((row) => {
@@ -178,7 +178,7 @@ async function loadCohort(elId) {
 
 async function loadSellers(elId) {
   try {
-    const rows = await apiGet("/api/sellers/top?limit=10");
+    const rows = await apiGet("/api/sellers/top?limit=10&source=olist");
     const trs = rows.map((s, i) =>
       `<tr><td class="rank">#${i+1}</td><td class="sid">${String(s.seller_id).slice(0,8)}...</td><td><span class="state-tag">${s.seller_state || "-"}</span></td><td class="num">${fmtNum(s.total_orders)}</td><td class="num">${fmtBRL(s.total_revenue)}</td><td class="num">${Number(s.avg_review_score).toFixed(2)}&#9733;</td></tr>`).join("");
     document.getElementById(elId).innerHTML = `<table class="seller-table"><thead><tr><th>Rank</th><th>Seller</th><th>State</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Avg Review</th></tr></thead><tbody>${trs}</tbody></table>`;
@@ -187,7 +187,7 @@ async function loadSellers(elId) {
 
 async function loadLtv(canvasId) {
   try {
-    const rows = await apiGet("/api/customer-segments");
+    const rows = await apiGet("/api/customer-segments?source=olist");
     const box = document.getElementById(canvasId).parentElement;
     if (typeof Chart === "undefined") {
       box.innerHTML = '<table style="width:100%;font-size:13px">' + rows.map((r) => `<tr><td style="padding:6px 0;color:#8b8f9a">RFM ${r.rfm_total}</td><td style="padding:6px 0;text-align:right">${fmtNum(r.customers)}</td></tr>`).join("") + "</table>";
@@ -251,6 +251,7 @@ function initTabs() {
       document.getElementById("panel-" + tab).classList.add("active");
       if (tab === "live") loadLiveTab();
       else if (tab === "health") loadHealthTab();
+      else if (tab === "real") loadRealTabOnce();
       else Object.values(maps).forEach((m) => setTimeout(() => m.invalidateSize(), 100));
     });
   });
@@ -358,11 +359,21 @@ function renderModelMetrics(m) {
   document.getElementById("model-metrics").innerHTML = rows || '<div class="note">No model metrics available.</div>';
 }
 
+let realLoaded = false;
+function loadRealTabOnce() {
+  if (realLoaded) {
+    Object.values(maps).forEach((m) => setTimeout(() => m.invalidateSize(), 100));
+    return;
+  }
+  realLoaded = true;
+  loadRealTab();
+  setTimeout(attachRealInterpretations, 1500);
+}
+
 async function init() {
   document.getElementById("last-updated").textContent = "\u25CF Loaded " + new Date().toLocaleDateString("pt-BR");
   initTabs();
   await loadInterpretations();
-  loadRealTab();
-  setTimeout(attachRealInterpretations, 1500);
+  loadLiveTab();
 }
 document.addEventListener("DOMContentLoaded", init);
