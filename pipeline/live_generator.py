@@ -88,13 +88,28 @@ def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
     orders, items, payments, reviews, customers = [], [], [], [], []
     seen_customers = set()
 
+    # Fixed pool of "new" live customers, each with a hidden loyalty propensity.
+    # High-propensity customers are sampled more often (producing repeat
+    # purchases) AND tend to leave higher review scores, creating a realistic,
+    # NOISY correlation between observable features (recency, frequency, review)
+    # and future repurchase. This lets the reactivation model learn signal
+    # without it being trivial. Synthetic by design; documented as such.
+    n_pool = 6000
+    pool_ids = [fake.uuid4() for _ in range(n_pool)]
+    propensity = rng.beta(1.5, 6.0, size=n_pool)  # skewed low (mostly one-and-done)
+    pool_states = rng.choice(["SP", "RJ", "MG", "RS", "PR", "SC", "BA"], size=n_pool)
+    pool_cities = [fake.city() for _ in range(n_pool)]
+    pool_postcodes = rng.integers(1000, 99999, size=n_pool)
+    pool_weights = (0.2 + propensity) / (0.2 + propensity).sum()
+
     day = start
     while day <= end:
         mult = rp.dow_multiplier(day.weekday())
         n = max(0, int(round(ORDERS_PER_DAY * mult * float(rng.normal(1.0, 0.1)))))
         for _ in range(n):
             order_id = fake.uuid4()
-            # customer: 40% existing Olist customer, 60% new
+            cust_propensity = 0.0
+            # customer: 40% existing Olist customer, 60% from the live pool
             if rng.random() < EXISTING_CUSTOMER_RATE and len(existing) > 0:
                 row = existing.iloc[int(rng.choice(existing_idx))]
                 cust_unique = row["customer_unique_id"]
@@ -102,10 +117,12 @@ def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
                     row["customer_postcode"], row["customer_city"], row["customer_state"]
                 )
             else:
-                cust_unique = fake.uuid4()
-                state = str(rng.choice(["SP", "RJ", "MG", "RS", "PR", "SC", "BA"]))
-                city = fake.city()
-                postcode = str(int(rng.integers(1000, 99999)))
+                pi = int(rng.choice(n_pool, p=pool_weights))
+                cust_unique = pool_ids[pi]
+                cust_propensity = float(propensity[pi])
+                state = str(pool_states[pi])
+                city = pool_cities[pi]
+                postcode = str(int(pool_postcodes[pi]))
             customer_id = fake.uuid4()  # per-order id, like Olist
             customers.append({
                 "customer_id": customer_id,
@@ -190,6 +207,10 @@ def generate_live(con, seed: int = SEED) -> dict[str, pd.DataFrame]:
             if rng.random() < 0.99:
                 is_late = delivered > estimated
                 score = rp.sample_review_score(rng, is_late)
+                # High-propensity (loyal) customers tend to rate higher; bump
+                # their score up with some probability proportional to propensity.
+                if cust_propensity > 0 and rng.random() < cust_propensity:
+                    score = min(5, score + 1)
                 reviews.append({
                     "review_id": fake.uuid4(),
                     "order_id": order_id,

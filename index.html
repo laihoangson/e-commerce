@@ -152,7 +152,8 @@
         An e-commerce intelligence platform spanning the full data lifecycle —
         ingestion, quality, transformation, analytics, machine learning, and
         AI-powered insights — built entirely on $0 free-tier infrastructure.
-        Generated Australian e-commerce data, calibrated to real distributions.
+        Generated from the real Olist Brazilian e-commerce dataset (~99k orders)
+        as a historical core, with a synthetic live tail continuing the timeline.
       </p>
       <div class="cta-row">
         <a class="btn btn-primary" href="dashboard/">View Live Dashboard →</a>
@@ -167,14 +168,14 @@
       <div class="sec-label">Architecture</div>
       <h2>A medallion pipeline, end to end</h2>
       <p style="margin-bottom:30px">
-        Raw synthetic data flows through validated Bronze, a cleansed Silver star
+        Real Olist transaction data flows through validated Bronze, a cleansed Silver star
         schema, and business-ready Gold marts — orchestrated, tested, and served.
       </p>
       <div class="flow">
         <div class="flow-node">
           <div class="tier">Bronze</div>
           <div class="title">Raw</div>
-          <div class="desc">9 tables, Faker-generated, validated by Great Expectations</div>
+          <div class="desc">9 tables, real Olist + synthetic live tail, validated by Great Expectations</div>
         </div>
         <div class="flow-node">
           <div class="tier">Silver</div>
