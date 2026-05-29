@@ -6,7 +6,7 @@
 
 const CONFIG = {
   // Render FastAPI base URL, e.g. "https://retaillens-api.onrender.com"
-  API_BASE: "https://retaillens-api.onrender.com",
+  API_BASE: "https://e-commerce-sn16.onrender.com/",
 
   // Supabase project URL, e.g. "https://xxxxxxxx.supabase.co"
   SUPABASE_URL: "https://goteocpjciirasnrwndw.supabase.co",
