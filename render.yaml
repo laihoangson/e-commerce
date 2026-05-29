@@ -8,7 +8,7 @@
 
 services:
   - type: web
-    name: retaillens-api
+    name: e-commerce-sn16
     runtime: python
     plan: free
     rootDir: api
