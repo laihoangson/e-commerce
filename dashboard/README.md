@@ -1,66 +1,37 @@
-## RetailLens Dashboard
+## RetailLens Dashboards
 
-Static dashboard (vanilla JS) for GitHub Pages. Four sections: Overview KPIs,
-Monthly Revenue, A/B Experiments, Order Funnel.
+The frontend is now split into two separate dashboard pages:
 
-Hybrid data sourcing:
-- Computed endpoints (KPIs, A/B lift, monthly revenue) -> FastAPI on Render
-- Simple table reads (funnel) -> Supabase REST directly
+- `olist.html` - Olist Historical Intelligence for the real 2016-2018 dataset.
+- `synthetic.html` - Synthetic Growth Command Center for the disclosed 2024-2026 live tail.
 
-### 1. Configure
+`index.html` is a small dashboard hub, while the repository root `../index.html`
+is the public home page that explains the two-dashboard concept and links to
+both pages.
 
-Edit `config.js` and fill in three values:
+### Data Sources
 
-```javascript
-const CONFIG = {
-  API_BASE: "https://retaillens-api.onrender.com",   // your Render URL
-  SUPABASE_URL: "https://xxxxxxxx.supabase.co",       // your Supabase URL
-  SUPABASE_ANON_KEY: "eyJ...",                         // anon/public key only
-};
+- Olist dashboard source: `olist`
+- Synthetic dashboard source: `faker_live`
+
+### API Dependencies
+
+The frontend expects the FastAPI service configured in `config.js`.
+
+The synthetic period selector uses:
+
+```text
+/api/revenue/timeseries?source=faker_live&period=day|week|month|year&start=YYYY-MM-DD&end=YYYY-MM-DD
 ```
 
-The anon key is safe to expose — it only allows what your Row-Level Security
-policies permit. Never put the service key here.
+### Local Test
 
-### 2. Enable read access on Gold tables (Supabase RLS)
-
-By default Supabase blocks REST reads. The funnel section needs read access to
-`funnel_conversion`. In the Supabase SQL editor, run (for each table the
-dashboard reads via REST):
-
-```sql
-alter table public.funnel_conversion enable row level security;
-
-create policy "public read funnel"
-  on public.funnel_conversion
-  for select
-  to anon
-  using (true);
-```
-
-This grants anonymous SELECT only (no writes). Repeat for any other table you
-later read directly via REST. Tables served only through FastAPI do not need a
-policy, because the API connects with the service credentials.
-
-### 3. Test locally
-
-Because the dashboard fetches from remote endpoints, you can open it with any
-static server:
+The pages are static, so they can be opened directly in a browser. If browser
+CORS behavior blocks remote API calls from `file://`, serve the folder instead:
 
 ```powershell
 cd dashboard
 python -m http.server 8080
 ```
 
-Then open http://localhost:8080. On first load the Render API may take ~30–50s
-to wake (free tier cold start); reload if a section times out.
-
-### 4. Deploy to GitHub Pages
-
-Commit the `dashboard/` folder, then in the repo: Settings > Pages > Source =
-Deploy from a branch > branch `main`, folder `/dashboard` (or move these files
-to a `docs/` folder if you prefer the `/docs` option). The site publishes at
-`https://<username>.github.io/<repo>/`.
-
-Set the API's `CORS_ORIGINS` env on Render to your Pages origin
-(e.g. `https://laihoangson.github.io`) so the browser allows the API calls.
+Then open `http://localhost:8080`.

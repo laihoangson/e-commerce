@@ -3,238 +3,268 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RetailLens — E-commerce Intelligence Platform</title>
-
+  <title>RetailLens - E-commerce Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0e0f12;
-      --panel: #16181d;
-      --panel-2: #1c1f26;
-      --line: #2a2e37;
-      --ink: #f3f1ea;
-      --muted: #8b8f9a;
-      --accent: #e8a33d;
-      --green: #6fcf97;
-      --mono: "JetBrains Mono", ui-monospace, monospace;
-      --display: "Fraunces", Georgia, serif;
+      --bg: #f6f4ef;
+      --surface: #fffdf8;
+      --ink: #171a1f;
+      --muted: #68707d;
+      --line: #d8d2c4;
+      --teal: #0f766e;
+      --amber: #b7791f;
+      --dark: #102c2b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body {
-      background:
-        radial-gradient(1100px 600px at 80% -10%, rgba(232,163,61,0.10), transparent 60%),
-        radial-gradient(700px 500px at 5% 110%, rgba(111,207,151,0.05), transparent 60%),
-        var(--bg);
+      margin: 0;
       color: var(--ink);
-      font-family: var(--mono);
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-      line-height: 1.5;
+      background:
+        linear-gradient(180deg, rgba(15, 118, 110, 0.09), transparent 360px),
+        var(--bg);
     }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
-
-    /* Hero */
-    .hero { padding: 92px 0 70px; }
+    a { color: inherit; text-decoration: none; }
+    .shell {
+      width: min(1140px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .topbar a:last-child {
+      color: var(--teal);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 44px;
+      align-items: end;
+      padding: 88px 0 52px;
+    }
     .eyebrow {
-      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 22px;
-    }
-    .hero h1 {
-      font-family: var(--display); font-weight: 900;
-      font-size: clamp(46px, 8vw, 92px); letter-spacing: -0.03em;
-      line-height: 0.92;
-    }
-    .hero h1 .lens { color: var(--accent); font-style: italic; }
-    .hero .lede {
-      font-size: clamp(15px, 2vw, 18px); color: var(--muted);
-      max-width: 620px; margin-top: 26px; line-height: 1.7;
-    }
-    .cta-row { display: flex; gap: 14px; margin-top: 38px; flex-wrap: wrap; }
-    .btn {
-      font-family: var(--mono); font-size: 13px; font-weight: 500;
-      text-decoration: none; padding: 14px 26px; border-radius: 10px;
-      letter-spacing: 0.03em; transition: transform 0.15s ease, background 0.15s ease;
-      display: inline-flex; align-items: center; gap: 9px;
-    }
-    .btn-primary { background: var(--accent); color: #1a1205; }
-    .btn-primary:hover { transform: translateY(-2px); background: #f0b455; }
-    .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
-    .btn-ghost:hover { transform: translateY(-2px); border-color: var(--accent); }
-
-    /* Section */
-    .sec { padding: 56px 0; border-top: 1px solid var(--line); }
-    .sec-label {
-      font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 28px;
-    }
-    .sec h2 {
-      font-family: var(--display); font-weight: 600;
-      font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.01em;
-      margin-bottom: 20px;
-    }
-    .sec p { color: var(--muted); max-width: 680px; line-height: 1.8; }
-
-    /* Pipeline flow */
-    .flow {
-      display: flex; align-items: stretch; gap: 0; flex-wrap: wrap;
-      margin-top: 14px;
-    }
-    .flow-node {
-      flex: 1; min-width: 150px; background: var(--panel);
-      border: 1px solid var(--line); border-radius: 12px; padding: 20px 18px;
-      position: relative;
-    }
-    .flow-node + .flow-node { margin-left: 10px; }
-    .flow-node .tier {
-      font-size: 11px; color: var(--accent); letter-spacing: 0.1em;
+      margin: 0 0 14px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
     }
-    .flow-node .title {
-      font-family: var(--display); font-weight: 600; font-size: 18px;
-      margin: 8px 0 6px;
+    h1 {
+      margin: 0 0 22px;
+      font-size: clamp(44px, 7vw, 88px);
+      line-height: 0.96;
+      letter-spacing: -0.065em;
     }
-    .flow-node .desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
-    @media (max-width: 720px) {
-      .flow-node + .flow-node { margin-left: 0; margin-top: 10px; }
+    .hero p {
+      margin: 0;
+      max-width: 710px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
     }
-
-    /* Stack grid */
-    .stack {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px; margin-top: 12px;
+    .stack-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(23, 26, 31, 0.08);
     }
-    .chip {
-      background: var(--panel); border: 1px solid var(--line);
-      border-radius: 10px; padding: 16px 18px;
+    .stack-card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      letter-spacing: -0.03em;
     }
-    .chip .k {
-      font-size: 11px; color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.08em;
+    .stack-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
     }
-    .chip .v { font-size: 14px; margin-top: 6px; font-weight: 500; }
-
-    /* Highlights */
-    .highlights { display: grid; gap: 14px; margin-top: 12px; }
-    .hl {
-      background: var(--panel); border: 1px solid var(--line);
-      border-left: 3px solid var(--accent); border-radius: 12px; padding: 22px 24px;
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
     }
-    .hl h3 {
-      font-family: var(--mono); font-size: 14px; font-weight: 700;
+    .dashboard-card {
+      min-height: 310px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 20px 50px rgba(23, 26, 31, 0.08);
+    }
+    .dashboard-card.dark {
+      background: var(--dark);
+      color: #f8fafc;
+      border-color: var(--dark);
+    }
+    .tag {
+      width: fit-content;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #ccfbf1;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .dark .tag {
+      background: rgba(204, 251, 241, 0.15);
+      color: #99f6e4;
+    }
+    .dashboard-card h2 {
+      margin: 18px 0 12px;
+      max-width: 520px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: -0.055em;
+    }
+    .dashboard-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .dark p { color: #cbd5e1; }
+    .open-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 7px;
+      background: var(--teal);
+      color: #fff;
+      font-weight: 900;
+    }
+    .dark .open-link {
+      background: #f8fafc;
+      color: var(--dark);
+    }
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .note {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    .note strong {
+      display: block;
       margin-bottom: 8px;
+      font-size: 14px;
     }
-    .hl p { font-size: 13px; }
-
+    .note span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
     footer {
-      border-top: 1px solid var(--line); padding: 30px 0 70px;
-      color: var(--muted); font-size: 11px; letter-spacing: 0.05em;
-      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin-top: 44px;
+      color: var(--muted);
+      font-size: 13px;
     }
-    footer a { color: var(--accent); text-decoration: none; }
-
-    .reveal { opacity: 0; transform: translateY(14px); animation: rise 0.7s ease forwards; }
-    @keyframes rise { to { opacity: 1; transform: none; } }
+    @media (max-width: 900px) {
+      .hero,
+      .dashboard-grid,
+      .notes { grid-template-columns: 1fr; }
+      .hero { padding-top: 54px; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <!-- Hero -->
-    <section class="hero reveal">
-      <div class="eyebrow">Solo end-to-end data platform</div>
-      <h1>Retail<span class="lens">Lens</span></h1>
-      <p class="lede">
-        An e-commerce intelligence platform spanning the full data lifecycle —
-        ingestion, quality, transformation, analytics, machine learning, and
-        AI-powered insights — built entirely on $0 free-tier infrastructure.
-        Generated from the real Olist Brazilian e-commerce dataset (~99k orders)
-        as a historical core, with a synthetic live tail continuing the timeline.
-      </p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="dashboard/">View Live Dashboard →</a>
-        <a class="btn btn-ghost" href="https://github.com/laihoangson/e-commerce" target="_blank" rel="noopener">
-          Source on GitHub
-        </a>
+  <main class="shell">
+    <nav class="topbar">
+      <a class="brand" href="index.html">RetailLens</a>
+      <a href="dashboard/">Dashboards</a>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">E-commerce intelligence project</p>
+        <h1>From historical analysis to a growth command center.</h1>
+        <p>
+          RetailLens now has two clear dashboard experiences: one reads the real
+          Olist marketplace dataset deeply, and one uses a disclosed synthetic
+          2024-2026 stream to demonstrate operating cadence, ML, experiments,
+          forecasting, and trust monitoring.
+        </p>
       </div>
+      <aside class="stack-card">
+        <h2>What this project proves</h2>
+        <p>
+          Data engineering, analytics, dashboard design, model serving, A/B
+          analysis, time-series thinking, and monitoring in one coherent
+          marketplace intelligence product.
+        </p>
+      </aside>
     </section>
 
-    <!-- Architecture -->
-    <section class="sec reveal" style="animation-delay:0.05s">
-      <div class="sec-label">Architecture</div>
-      <h2>A medallion pipeline, end to end</h2>
-      <p style="margin-bottom:30px">
-        Real Olist transaction data flows through validated Bronze, a cleansed Silver star
-        schema, and business-ready Gold marts — orchestrated, tested, and served.
-      </p>
-      <div class="flow">
-        <div class="flow-node">
-          <div class="tier">Bronze</div>
-          <div class="title">Raw</div>
-          <div class="desc">9 tables, real Olist + synthetic live tail, validated by Great Expectations</div>
+    <section class="dashboard-grid">
+      <a class="dashboard-card" href="dashboard/olist.html">
+        <div>
+          <span class="tag">Real Olist data · 2016-2018</span>
+          <h2>Olist Historical Intelligence</h2>
+          <p>
+            Analyze the original Brazilian marketplace data across revenue,
+            customers, sellers, fulfillment, payments, product quality, and reviews.
+          </p>
         </div>
-        <div class="flow-node">
-          <div class="tier">Silver</div>
-          <div class="title">Modeled</div>
-          <div class="desc">Star schema via dbt — 6 dimensions, 4 facts</div>
+        <span class="open-link">Open historical dashboard</span>
+      </a>
+
+      <a class="dashboard-card dark" href="dashboard/synthetic.html">
+        <div>
+          <span class="tag">Synthetic data · 2024-2026</span>
+          <h2>Synthetic Growth Command Center</h2>
+          <p>
+            Operate a live-style marketplace dashboard with daily, weekly,
+            monthly, and yearly views plus ML, A/B tests, forecast, risk, and trust.
+          </p>
         </div>
-        <div class="flow-node">
-          <div class="tier">Gold</div>
-          <div class="title">Marts</div>
-          <div class="desc">Revenue, RFM, cohorts, A/B, funnel — served to Postgres</div>
-        </div>
-        <div class="flow-node">
-          <div class="tier">Surface</div>
-          <div class="title">Insights</div>
-          <div class="desc">Dashboard, ML API, RAG with verified citations</div>
-        </div>
-      </div>
+        <span class="open-link">Open command center</span>
+      </a>
     </section>
 
-    <!-- Differentiators -->
-    <section class="sec reveal" style="animation-delay:0.1s">
-      <div class="sec-label">What makes it different</div>
-      <h2>Beyond a training notebook</h2>
-      <div class="highlights">
-        <div class="hl">
-          <h3>Lakehouse on free tier</h3>
-          <p>DuckDB compute over object storage, with a documented scale path — demonstrating the warehouse-vs-lakehouse trade-off, not just a single tool.</p>
-        </div>
-        <div class="hl">
-          <h3>NLI-verified RAG citations</h3>
-          <p>A natural-language-inference model checks that every generated insight is actually entailed by the source data — an AI-safety practice rarely seen in portfolios.</p>
-        </div>
-        <div class="hl">
-          <h3>Production observability</h3>
-          <p>SLI/SLO tracking, model monitoring, and data-drift detection (PSI + KS tests) — built for production readiness, not just model accuracy.</p>
-        </div>
+    <section class="notes">
+      <div class="note">
+        <strong>Dashboard 1</strong>
+        <span>For real analytical storytelling: what happened in Olist and what patterns matter.</span>
       </div>
-    </section>
-
-    <!-- Stack -->
-    <section class="sec reveal" style="animation-delay:0.15s">
-      <div class="sec-label">Tech stack — all $0</div>
-      <h2>Free-tier, top to bottom</h2>
-      <div class="stack">
-        <div class="chip"><div class="k">Warehouse</div><div class="v">DuckDB</div></div>
-        <div class="chip"><div class="k">Transform</div><div class="v">dbt</div></div>
-        <div class="chip"><div class="k">Quality</div><div class="v">Great Expectations</div></div>
-        <div class="chip"><div class="k">Storage + DB</div><div class="v">Supabase</div></div>
-        <div class="chip"><div class="k">Orchestration</div><div class="v">GitHub Actions</div></div>
-        <div class="chip"><div class="k">API</div><div class="v">FastAPI · Render</div></div>
-        <div class="chip"><div class="k">Dashboard</div><div class="v">Vanilla JS · Pages</div></div>
-        <div class="chip"><div class="k">LLM + Vectors</div><div class="v">Groq · ChromaDB</div></div>
+      <div class="note">
+        <strong>Dashboard 2</strong>
+        <span>For product simulation: what changed this period, what to do next, and what ML supports.</span>
+      </div>
+      <div class="note">
+        <strong>ML scope</strong>
+        <span>Use reactivation, recommendations, A/B analysis, anomaly/forecasting, and model monitoring where they serve decisions.</span>
       </div>
     </section>
 
     <footer>
-      <span>RetailLens — generalist DE / DA / DS / MLE portfolio</span>
-      <span><a href="dashboard/">Dashboard</a> · <a href="https://github.com/laihoangson/e-commerce" target="_blank" rel="noopener">GitHub</a></span>
+      DuckDB · dbt · Supabase · FastAPI · vanilla JS · ML artifacts · monitoring
     </footer>
-  </div>
+  </main>
 </body>
 </html>

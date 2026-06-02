@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Synthetic Growth Command Center - RetailLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="common.css" />
+</head>
+<body data-page="synthetic">
+  <main class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="../index.html">RetailLens</a>
+      <span class="pill accent">Synthetic 2024-2026</span>
+      <nav>
+        <a href="#pulse">Pulse</a>
+        <a href="#trend">Trend</a>
+        <a href="#experiments">Experiments</a>
+        <a href="#ml">Machine Learning</a>
+        <a href="#trust">Trust</a>
+      </nav>
+      <a class="side-link" href="olist.html">Open Olist historical dashboard</a>
+    </aside>
+
+    <section class="content">
+      <header class="page-head command">
+        <div>
+          <p class="eyebrow">Growth command center</p>
+          <h1>Operate the synthetic marketplace.</h1>
+          <p class="lede">A production-style dashboard for the 2024-2026 live tail: period controls, previous-period comparison, A/B decisions, reactivation targeting, recommendations, forecasting, and model trust.</p>
+        </div>
+        <form class="control-panel" id="synthetic-controls">
+          <label>
+            Period
+            <select id="period-select">
+              <option value="day">Daily</option>
+              <option value="week">Weekly</option>
+              <option value="month" selected>Monthly</option>
+              <option value="year">Yearly</option>
+            </select>
+          </label>
+          <label>
+            Start
+            <input id="start-date" type="date" value="2024-01-01" min="2024-01-01" max="2026-12-31" />
+          </label>
+          <label>
+            End
+            <input id="end-date" type="date" value="2026-05-25" min="2024-01-01" max="2026-12-31" />
+          </label>
+          <button type="submit">Apply</button>
+        </form>
+      </header>
+
+      <section id="pulse" class="section">
+        <div class="section-title">
+          <span>01</span>
+          <h2>Pulse Overview</h2>
+        </div>
+        <div class="kpi-grid" id="synthetic-kpis"></div>
+      </section>
+
+      <section id="trend" class="section grid-2">
+        <article class="panel wide-panel">
+          <div class="panel-head">
+            <h3>Revenue Trend</h3>
+            <span id="synthetic-period-label">Monthly</span>
+          </div>
+          <div class="chart"><canvas id="synthetic-revenue"></canvas></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Risk & Opportunity</h3>
+            <span>What to watch</span>
+          </div>
+          <div id="synthetic-risk" class="insight-list"></div>
+        </article>
+      </section>
+
+      <section id="experiments" class="section">
+        <div class="section-title">
+          <span>02</span>
+          <h2>Experiment Lab</h2>
+        </div>
+        <div class="card-grid" id="synthetic-ab"></div>
+      </section>
+
+      <section id="ml" class="section grid-3">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Reactivation</h3>
+            <span>XGBoost</span>
+          </div>
+          <p class="mini-copy">Predicts which repeat customers are most likely to buy again, so campaign budget can target high-opportunity users first.</p>
+          <div id="synthetic-reactivation" class="metric-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Recommendation</h3>
+            <span>ALS</span>
+          </div>
+          <p class="mini-copy">Precomputes personalized product recommendations and falls back to popular products for cold-start customers.</p>
+          <div id="synthetic-recs" class="metric-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Time Series</h3>
+            <span>Forecast</span>
+          </div>
+          <p class="mini-copy">Worth using for revenue and order forecasts. Keep it explainable: moving average or exponential smoothing before heavier models.</p>
+          <div id="synthetic-forecast" class="metric-list"></div>
+        </article>
+      </section>
+
+      <section id="trust" class="section grid-2">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>System Trust</h3>
+            <span>SLO</span>
+          </div>
+          <div id="synthetic-trust" class="metric-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Data Drift</h3>
+            <span>PSI / KS</span>
+          </div>
+          <div id="synthetic-drift" class="insight-list"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

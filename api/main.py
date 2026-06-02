@@ -91,17 +91,23 @@ def health() -> dict:
 
 
 @app.get("/api/kpis")
-def kpis(source: str = "olist") -> dict:
+def kpis(source: str = "olist", start: str | None = None, end: str | None = None) -> dict:
     """Headline KPIs for a dashboard tab, filtered by data source.
 
     source: 'olist' (real historical) or 'faker_live' (synthetic live tail).
     """
+    date_filter = (
+        " AND (:start IS NULL OR order_date >= CAST(:start AS date)) "
+        " AND (:end IS NULL OR order_date <= CAST(:end AS date)) "
+    )
+    params = {"src": source, "start": start, "end": end}
     rev = _query(
         "SELECT COALESCE(SUM(revenue),0) AS total_revenue, "
         "COALESCE(SUM(orders),0) AS total_orders, "
         "COALESCE(AVG(avg_order_value),0) AS avg_order_value "
-        "FROM daily_revenue WHERE data_source = :src",
-        {"src": source},
+        "FROM daily_revenue WHERE data_source = :src"
+        + date_filter,
+        params,
     )
     funnel = _query(
         "SELECT delivery_rate_pct FROM funnel_conversion WHERE data_source = :src",
@@ -125,6 +131,40 @@ def revenue_monthly(source: str = "olist") -> list[dict]:
         "ROUND(SUM(revenue)::numeric, 2) AS revenue, SUM(orders) AS orders "
         "FROM daily_revenue WHERE data_source = :src GROUP BY 1 ORDER BY 1",
         {"src": source},
+    )
+
+
+@app.get("/api/revenue/timeseries")
+def revenue_timeseries(
+    source: str = "faker_live",
+    period: str = "month",
+    start: str | None = None,
+    end: str | None = None,
+) -> list[dict]:
+    """Revenue, orders, and AOV aggregated by day/week/month/year.
+
+    Used by the synthetic command center period selector.
+    """
+    grain_map = {
+        "day": ("day", "YYYY-MM-DD"),
+        "week": ("week", "YYYY-MM-DD"),
+        "month": ("month", "YYYY-MM"),
+        "year": ("year", "YYYY"),
+    }
+    if period not in grain_map:
+        raise HTTPException(status_code=400, detail="period must be day, week, month, or year")
+    grain, fmt = grain_map[period]
+    return _query(
+        f"SELECT to_char(date_trunc('{grain}', order_date), '{fmt}') AS period, "
+        "ROUND(SUM(revenue)::numeric, 2) AS revenue, "
+        "SUM(orders) AS orders, "
+        "ROUND((SUM(revenue) / NULLIF(SUM(orders), 0))::numeric, 2) AS avg_order_value "
+        "FROM daily_revenue "
+        "WHERE data_source = :src "
+        "AND (:start IS NULL OR order_date >= CAST(:start AS date)) "
+        "AND (:end IS NULL OR order_date <= CAST(:end AS date)) "
+        "GROUP BY 1 ORDER BY 1",
+        {"src": source, "start": start, "end": end},
     )
 
 

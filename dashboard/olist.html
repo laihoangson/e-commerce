@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Olist Historical Intelligence - RetailLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="common.css" />
+</head>
+<body data-page="olist">
+  <main class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="../index.html">RetailLens</a>
+      <span class="pill">Real Olist</span>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#revenue">Revenue</a>
+        <a href="#customers">Customers</a>
+        <a href="#sellers">Sellers</a>
+        <a href="#operations">Operations</a>
+      </nav>
+      <a class="side-link" href="synthetic.html">Open synthetic command center</a>
+    </aside>
+
+    <section class="content">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Historical intelligence</p>
+          <h1>Olist marketplace analysis</h1>
+          <p class="lede">A full analytical read of the original Brazilian e-commerce dataset: business performance, customer behavior, seller quality, fulfillment risk, payments, and reviews.</p>
+        </div>
+      </header>
+
+      <section id="overview" class="section">
+        <div class="section-title">
+          <span>01</span>
+          <h2>Business Overview</h2>
+        </div>
+        <div class="kpi-grid" id="olist-kpis"></div>
+      </section>
+
+      <section id="revenue" class="section grid-2">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Monthly Revenue</h3>
+            <span>BRL</span>
+          </div>
+          <div class="chart"><canvas id="olist-revenue"></canvas></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Revenue By State</h3>
+            <span>Top markets</span>
+          </div>
+          <div id="olist-states" class="rank-list"></div>
+        </article>
+      </section>
+
+      <section id="customers" class="section grid-2">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Cohort Retention</h3>
+            <span>Monthly cohorts</span>
+          </div>
+          <div id="olist-cohort" class="table-scroll"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Customer Value Segments</h3>
+            <span>RFM score</span>
+          </div>
+          <div class="chart"><canvas id="olist-rfm"></canvas></div>
+        </article>
+      </section>
+
+      <section id="sellers" class="section grid-2">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Top Sellers</h3>
+            <span>Revenue leaders</span>
+          </div>
+          <div id="olist-sellers"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Payment Mix</h3>
+            <span>Method distribution</span>
+          </div>
+          <div id="olist-payments" class="note-block">
+            Payment analysis is planned as a Gold mart. The current shipped API already supports revenue, customer, seller, delivery, and review analysis.
+          </div>
+        </article>
+      </section>
+
+      <section id="operations" class="section grid-2">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Delivery Performance</h3>
+            <span>Fulfillment</span>
+          </div>
+          <div id="olist-delivery" class="metric-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Reviews vs Late Delivery</h3>
+            <span>Quality signal</span>
+          </div>
+          <div class="chart"><canvas id="olist-reviews"></canvas></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
