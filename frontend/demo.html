@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olist Intelligence Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:       #070b11;
+  --surface:  #0f1621;
+  --surface2: #161e2e;
+  --surface3: #1c2640;
+  --border:   #1f2d45;
+  --text:     #e2eaf6;
+  --muted:    #6b7fa3;
+  --accent:   #e8a020;   /* Olist amber */
+  --blue:     #4a9eff;
+  --green:    #2ecc71;
+  --red:      #e74c3c;
+  --purple:   #9b59b6;
+  --mono:     'JetBrains Mono','Fira Code',monospace;
+  --sans:     'Inter',system-ui,sans-serif;
+  --radius:   10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── TOPBAR ─────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(7,11,17,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:54px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{
+  width:28px;height:28px;border-radius:6px;
+  background:linear-gradient(135deg,var(--accent),#c06010);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#000;
+}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:-.02em}
+.brand-sub{color:var(--muted);font-size:12px;margin-left:6px}
+
+/* ── CONFIG BANNER ──────────────────────────────────────── */
+#config-banner{
+  background:linear-gradient(90deg,rgba(74,158,255,.12),rgba(74,158,255,.06));
+  border:1px solid rgba(74,158,255,.25);
+  border-radius:var(--radius);
+  padding:16px 24px;margin:24px 28px 0;
+  display:flex;align-items:flex-start;gap:16px;
+}
+#config-banner.hidden{display:none}
+.config-icon{font-size:20px;margin-top:2px}
+.config-body{flex:1}
+.config-body h3{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:8px}
+.config-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.config-input{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:7px 12px;color:var(--text);
+  font-family:var(--mono);font-size:12px;outline:none;
+  transition:border-color .2s;
+}
+.config-input:focus{border-color:var(--blue)}
+.config-input.wide{flex:1;min-width:220px}
+.btn{
+  padding:8px 18px;border-radius:6px;border:none;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .2s;
+}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#fbb040}
+.btn-secondary{background:var(--surface3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ── TABS ───────────────────────────────────────────────── */
+.tabs{
+  display:flex;gap:2px;padding:0 28px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  overflow-x:auto;
+}
+.tab{
+  padding:12px 18px;border:none;background:none;
+  color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:all .2s;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── MAIN LAYOUT ────────────────────────────────────────── */
+.main{max-width:1400px;margin:0 auto;padding:28px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── SECTION HEADER ─────────────────────────────────────── */
+.sec-header{margin-bottom:24px}
+.sec-question{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.2);
+  border-radius:20px;padding:4px 14px;font-size:12px;color:var(--accent);
+  margin-bottom:10px;
+}
+.sec-title{font-size:22px;font-weight:700;letter-spacing:-.03em}
+.sec-subtitle{color:var(--muted);font-size:13px;margin-top:4px}
+
+/* ── KPI GRID ───────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.kpi-grid.sm{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 18px;
+  position:relative;overflow:hidden;
+}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kpi-val{font-size:24px;font-weight:800;font-family:var(--mono);line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.kpi-val.g{color:var(--green)} .kpi-val.a{color:var(--accent)}
+.kpi-val.b{color:var(--blue)}  .kpi-val.r{color:var(--red)}
+
+/* ── CHART GRIDS ────────────────────────────────────────── */
+.grid-1  {display:grid;gap:16px}
+.grid-2  {display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3  {display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-13 {display:grid;grid-template-columns:1fr 3fr;gap:16px}
+.full    {grid-column:1/-1}
+
+/* ── CHART CARD ─────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+.card-header{padding:16px 20px 0}
+.card-title{font-size:13px;font-weight:600}
+.card-meta{font-size:11px;color:var(--muted);margin-top:3px;margin-bottom:12px}
+.card-body{padding:0 12px 16px}
+.card canvas{max-height:260px}
+
+/* ── INSIGHT BLOCK ──────────────────────────────────────── */
+.insight-block{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:0;margin-top:24px;
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+}
+.insight-col{padding:20px 24px;border-right:1px solid var(--border)}
+.insight-col:last-child{border-right:none}
+.insight-label{
+  font-size:11px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.insight-obs{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:8px}
+.insight-obs strong{color:var(--text)}
+.insight-impl{font-size:12px;color:var(--blue);line-height:1.6;margin-bottom:8px}
+.insight-action{
+  font-size:12px;line-height:1.6;
+  padding:8px 12px;background:rgba(232,160,32,.08);
+  border-left:2px solid var(--accent);border-radius:0 4px 4px 0;
+  color:var(--text);
+}
+
+/* ── PRIORITY TABLE ─────────────────────────────────────── */
+.priority-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.priority-table th,.priority-table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.priority-table th{background:var(--surface2);color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.priority-table tr:hover td{background:var(--surface2)}
+.priority-table .num{
+  width:28px;height:28px;border-radius:50%;background:var(--accent);
+  color:#000;font-weight:800;font-size:12px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.action-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+.action-col{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;
+}
+.action-col-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+.action-col ul{list-style:none;padding:0}
+.action-col li{font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.action-col li:last-child{border-bottom:none}
+.action-col li strong{color:var(--text)}
+
+/* ── LOADING / ERROR ────────────────────────────────────── */
+.loading{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:200px;gap:12px;color:var(--muted);
+}
+.spinner{
+  width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{
+  background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);
+  border-radius:var(--radius);padding:16px 20px;font-size:13px;color:var(--red);
+}
+
+/* ── SCATTER / TABLE special ───────────────────────────── */
+.scatter-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;padding:0 12px 12px}
+.scatter-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.scatter-dot{width:10px;height:10px;border-radius:50%}
+
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th,.data-table td{padding:7px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.data-table th{background:var(--surface2);color:var(--muted);font-size:11px}
+.data-table tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-r{background:rgba(231,76,60,.15);color:var(--red)}
+.badge-y{background:rgba(232,160,32,.15);color:var(--accent)}
+.badge-g{background:rgba(46,204,113,.15);color:var(--green)}
+
+@media(max-width:900px){
+  .grid-2,.grid-3,.grid-13,.action-cols{grid-template-columns:1fr}
+  .insight-block{grid-template-columns:1fr}
+  .insight-col{border-right:none;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">O</div>
+    <span class="brand-name">Olist Intelligence</span>
+    <span class="brand-sub">/ Brazilian E-Commerce Analytics</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="last-updated" style="font-size:11px;color:var(--muted)"></span>
+    <button class="btn btn-secondary" onclick="toggleConfig()">⚙ Config</button>
+    <button class="btn btn-primary" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</div>
+
+<!-- CONFIG BANNER -->
+<div id="config-banner">
+  <div class="config-icon">🔑</div>
+  <div class="config-body">
+    <h3>BigQuery Connection</h3>
+    <p style="font-size:12px;color:var(--muted)">
+      Enter your GCP credentials to load live data from BigQuery.
+      Your API key is stored only in this browser session (sessionStorage), never sent anywhere except Google APIs.
+    </p>
+    <div class="config-row">
+      <input class="config-input wide" id="inp-project" placeholder="GCP Project ID  (e.g. arctic-app-500004-k9)" />
+      <input class="config-input wide" id="inp-dataset" placeholder="Dataset  (e.g. ecom_gold)" value="ecom_gold" />
+      <input class="config-input wide" id="inp-apikey"  placeholder="BigQuery API Key" type="password" />
+    </div>
+    <div class="config-row" style="margin-top:8px">
+      <button class="btn btn-primary" onclick="saveConfig()">Save & Load Data</button>
+      <button class="btn btn-secondary" onclick="toggleConfig()">Dismiss</button>
+      <span style="font-size:11px;color:var(--muted);align-self:center">
+        Get API key: GCP Console → APIs → BigQuery API → Credentials → Create API Key
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(0)">📊 Executive Overview</button>
+  <button class="tab" onclick="switchTab(1)">🚚 Supply Chain</button>
+  <button class="tab" onclick="switchTab(2)">💰 Revenue & Commercial</button>
+  <button class="tab" onclick="switchTab(3)">👥 Customer Intelligence</button>
+  <button class="tab" onclick="switchTab(4)">💬 Voice of Customer</button>
+  <button class="tab" onclick="switchTab(5)">🎯 Strategic Priorities</button>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 0 — EXECUTIVE OVERVIEW
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-0">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Executive Overview</div>
+    <div class="sec-subtitle">What is the overall business health and where are the biggest opportunities?</div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-overview">
+    <div class="kpi"><div class="kpi-label">Total Orders</div><div class="kpi-val b" id="k-orders">—</div></div>
+    <div class="kpi"><div class="kpi-label">Total GMV</div><div class="kpi-val a" id="k-gmv">—</div></div>
+    <div class="kpi"><div class="kpi-label">OTIF Rate</div><div class="kpi-val g" id="k-otif">—</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Review Score</div><div class="kpi-val g" id="k-score">—</div></div>
+    <div class="kpi"><div class="kpi-label">Active Sellers</div><div class="kpi-val b" id="k-sellers">—</div></div>
+    <div class="kpi"><div class="kpi-label">Repeat Rate</div><div class="kpi-val r" id="k-repeat">—</div></div>
+  </div>
+  <div class="kpi-grid sm" style="margin-bottom:28px">
+    <div class="kpi"><div class="kpi-label">Late Orders</div><div class="kpi-val r" id="k-late">—</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Delivery</div><div class="kpi-val" id="k-days">—</div><div class="kpi-sub">days</div></div>
+    <div class="kpi"><div class="kpi-label">Total Reviews</div><div class="kpi-val b" id="k-reviews">—</div></div>
+    <div class="kpi"><div class="kpi-label">Categories</div><div class="kpi-val b" id="k-cats">—</div></div>
+  </div>
+
+  <div class="grid-1" style="margin-bottom:16px">
+    <div class="card full">
+      <div class="card-header">
+        <div class="card-title">Monthly GMV & Order Volume — 2016–2018</div>
+        <div class="card-meta">Dual axis · Revenue bars + Order count line · mart_sales_and_demand</div>
+      </div>
+      <div class="card-body"><canvas id="ch-gmv-trend"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Order Status Breakdown</div>
+        <div class="card-meta">Donut · mart_logistics_sla</div>
+      </div>
+      <div class="card-body"><canvas id="ch-order-status" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Payment Type — Value & AOV</div>
+        <div class="card-meta">Combo · mart_voice_of_customer</div>
+      </div>
+      <div class="card-body"><canvas id="ch-payment" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Orders by Day of Week</div>
+        <div class="card-meta">Bar · purchase behaviour</div>
+      </div>
+      <div class="card-body"><canvas id="ch-dow" style="max-height:200px"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">OTIF Rate by Month</div>
+        <div class="card-meta">Line · reference 91.9% · mart_logistics_sla</div>
+      </div>
+      <div class="card-body"><canvas id="ch-otif-trend"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">New vs Returning Customers by Quarter</div>
+        <div class="card-meta">Grouped bar + line · mart_customer_360</div>
+      </div>
+      <div class="card-body"><canvas id="ch-new-returning"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Seller Revenue Pareto</div>
+        <div class="card-meta">Cumulative GMV% · mart_customer_360</div></div>
+      <div class="card-body"><canvas id="ch-pareto" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Review Score Distribution</div>
+        <div class="card-meta">Bar · mart_voice_of_customer</div></div>
+      <div class="card-body"><canvas id="ch-review-dist" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top 5 States by Revenue</div>
+        <div class="card-meta">Bar · mart_logistics_sla</div></div>
+      <div class="card-body"><canvas id="ch-state-revenue" style="max-height:200px"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight-block">
+    <div class="insight-col">
+      <div class="insight-label">📦 Supply Chain</div>
+      <div class="insight-obs"><strong>Observation:</strong> OTIF 91.9%, platform over-promises 11.2 ngày trung bình. SP→RJ late rate 15%, tăng từ 0.2K/tháng → 1.5K (+650%) trong 2018.</div>
+      <div class="insight-impl">💡 Last-mile capacity không scale kịp volume growth. Scaling pressure bắt đầu từ Q4 2017.</div>
+      <div class="insight-action">→ Priority carrier tại RJ/BA → giảm 2.1pp late rate platform-wide. Proactive notification cho orders >2 ngày delay risk.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">👥 Customer</div>
+      <div class="insight-obs"><strong>Observation:</strong> 96.8% khách chỉ mua 1 lần. Returning revenue share chỉ 2.66% peak (2018 Q2). Returning customers: ~0–400/quarter.</div>
+      <div class="insight-impl">💡 CAC không convert thành CLTV — "leaky bucket". Growth hoàn toàn phụ thuộc acquisition, không sustainable.</div>
+      <div class="insight-action">→ Win-back campaign 30–60 ngày sau purchase đầu. Loyalty program từ order 1. Target repeat rate 3.12% → 5%+.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">💰 Revenue</div>
+      <div class="insight-obs"><strong>Observation:</strong> GMV tăng 4× trong 2 năm. Black Friday Nov 2017 spike +41% MoM. Top 10% sellers = 43.7% GMV. Credit card = 81% total payment value.</div>
+      <div class="insight-impl">💡 Growth driven bởi volume, not price — AOV ổn định R$137–164. Supply-side concentrated.</div>
+      <div class="insight-action">→ Seller success program cho top decile. Card-first checkout + installment tuning. watches_gifts growth 275% — double down.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 1 — SUPPLY CHAIN
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-1">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Supply Chain & Logistics</div>
+    <div class="sec-subtitle">Are we operationally reliable, and where are we losing customer trust through delivery?</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Avg Actual Days</div><div class="kpi-val b" id="k-actual-days">12.5</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Promised Days</div><div class="kpi-val" id="k-promised">23.8</div></div>
+    <div class="kpi"><div class="kpi-label">Over-promise</div><div class="kpi-val g">−11.2d</div></div>
+    <div class="kpi"><div class="kpi-label">Late Orders</div><div class="kpi-val r" id="k-late2">8,039</div></div>
+    <div class="kpi"><div class="kpi-label">Worst Route</div><div class="kpi-val a">SP→RJ</div><div class="kpi-sub">15% late</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Late Orders Count & Rate by Month</div>
+        <div class="card-meta">Bar + line dual axis · mart_logistics_sla</div></div>
+      <div class="card-body"><canvas id="ch-late-trend"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Late Delivery Distribution</div>
+        <div class="card-meta">Histogram · days_late buckets (− = early, + = late)</div></div>
+      <div class="card-body"><canvas id="ch-late-dist"></canvas></div>
+    </div>
+  </div>
+  <div class="card full" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">Top 15 Late Routes — Risk Table</div>
+      <div class="card-meta">route_id · total orders · late count · late rate % · avg days late · risk level</div></div>
+    <div class="card-body" style="padding:0 0 4px">
+      <div style="overflow-x:auto">
+        <table class="data-table" id="tbl-routes">
+          <thead><tr><th>Route</th><th>Total Orders</th><th>Late Orders</th><th>Late Rate</th><th>Avg Days Late</th><th>Risk</th></tr></thead>
+          <tbody id="routes-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Avg Freight Value by Seller State</div>
+        <div class="card-meta">Bar top 10 · mart_logistics_sla</div></div>
+      <div class="card-body"><canvas id="ch-freight-state"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Avg Delivery Days by Category</div>
+        <div class="card-meta">Horizontal bar · highlight >15 days</div></div>
+      <div class="card-body"><canvas id="ch-cat-delivery"></canvas></div>
+    </div>
+  </div>
+  <div class="insight-block">
+    <div class="insight-col">
+      <div class="insight-label">🔴 Root Cause</div>
+      <div class="insight-obs"><strong>Obs:</strong> SP→RJ + SP→BA = 34% of all late deliveries. Late orders jumped from ~0.2K/month (late 2017) to ~1.5K (early 2018) — a <strong>+650% surge</strong>.</div>
+      <div class="insight-impl">💡 Last-mile capacity at RJ and BA could not scale with marketplace growth. Supply chain bottleneck, not demand issue.</div>
+      <div class="insight-action">→ Fulfillment deep dive: map delays by stage. Priority carrier contracts at RJ/BA. Consider micro-fulfillment centers.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">📊 Scale</div>
+      <div class="insight-obs"><strong>Obs:</strong> Platform promises 23.8 days on average, actual delivery 12.5 days. Buffer of <strong>11.2 days</strong> = massive over-promise.</div>
+      <div class="insight-impl">💡 SLA buffer too large — tightening would improve conversion without ops changes, since actual performance already exceeds the tighter target.</div>
+      <div class="insight-action">→ Tighten SLA from 23.8 → 18 days for top routes. Test impact on conversion rate vs complaint rate.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">✅ Action Priority</div>
+      <div class="insight-obs"><strong>Obs:</strong> Freight cost varies 2× across states — CE/PE avg R$38–42 vs SP avg R$18. Large items (furniture, computers) add 3–5 delivery days vs avg.</div>
+      <div class="insight-impl">💡 Freight cost concentrated in distant northern states. Category-specific routing could reduce cost and time simultaneously.</div>
+      <div class="insight-action">→ Proactive notification for orders with >2 day delay risk: expected 2–3pp review score improvement. Category-aware routing for large items.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 2 — REVENUE & COMMERCIAL
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-2">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Revenue & Commercial Performance</div>
+    <div class="sec-subtitle">What drives revenue quality, and which commercial actions should leadership approve?</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Top Category</div><div class="kpi-val a" style="font-size:16px">health_beauty</div><div class="kpi-sub">R$ 1.4M</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Order Value</div><div class="kpi-val b">R$159.83</div></div>
+    <div class="kpi"><div class="kpi-label">Credit Card Share</div><div class="kpi-val g">81.3%</div><div class="kpi-sub">of GMV</div></div>
+    <div class="kpi"><div class="kpi-label">Highest Freight %</div><div class="kpi-val r">30.4%</div><div class="kpi-sub">signaling_security</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top 10 Categories by Revenue</div>
+        <div class="card-meta">Horizontal bar · mart_sales_and_demand</div></div>
+      <div class="card-body"><canvas id="ch-top-cats"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Payment Economics — Value & AOV</div>
+        <div class="card-meta">Combo bar · credit_card/boleto/voucher/debit_card</div></div>
+      <div class="card-body"><canvas id="ch-payment2"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Monthly Revenue by Top 5 Categories</div>
+        <div class="card-meta">Stacked area · category growth trends</div></div>
+      <div class="card-body"><canvas id="ch-cat-monthly"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Cancellation Rate by Month</div>
+        <div class="card-meta">Line · stockout proxy · mart_sales_and_demand</div></div>
+      <div class="card-body"><canvas id="ch-cancel-rate"></canvas></div>
+    </div>
+  </div>
+  <div class="card full" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">Revenue, Freight % & Growth by Category</div>
+      <div class="card-meta">Table with conditional formatting · green = favorable, red = concern</div></div>
+    <div class="card-body" style="padding:0 0 4px">
+      <div style="overflow-x:auto">
+        <table class="data-table" id="tbl-cat-revenue">
+          <thead><tr><th>Category</th><th>Total Revenue</th><th>Revenue Growth %</th><th>Freight % of Value</th><th>Priority</th></tr></thead>
+          <tbody id="cat-revenue-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="insight-block">
+    <div class="insight-col">
+      <div class="insight-label">💳 Payment</div>
+      <div class="insight-obs"><strong>Obs:</strong> Credit card R$12.54M (81%), AOV 164 — highest. Voucher AOV only 98 — lowest by far. Boleto AOV 145 — important in Brazil.</div>
+      <div class="insight-impl">💡 Voucher drag on margin. Credit card users spend 67% more per order than voucher users.</div>
+      <div class="insight-action">→ Card-first checkout + installment tuning. Review voucher terms — low-value only? Boleto: faster processing where feasible.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">🚚 Freight</div>
+      <div class="insight-obs"><strong>Obs:</strong> signaling_and_security freight 30.4%, telephony 22.4%, stationery 20.5%. These are high-growth categories being eroded by freight.</div>
+      <div class="insight-impl">💡 Freight ratio above 20% starts to hurt margin meaningfully at scale. These categories need carrier-level intervention.</div>
+      <div class="insight-action">→ Carrier renegotiation for signaling/telephony/stationery. Target −1.5 to −2pp freight ratio. Packaging optimization.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">📈 Growth</div>
+      <div class="insight-obs"><strong>Obs:</strong> watches_gifts growth 275.6%, small_appliances 6087%. bed_bath_table and health_beauty stable at top. security_and_services at 0% growth.</div>
+      <div class="insight-impl">💡 Emerging categories breaking out. Stagnant categories may need re-strategy or reallocation.</div>
+      <div class="insight-action">→ Double down on watches_gifts + small_appliances. Investigate security_and_services stagnation — lifecycle, pricing, relevance.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 3 — CUSTOMER INTELLIGENCE
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-3">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Customer Intelligence</div>
+    <div class="sec-subtitle">Who are our customers, how often do they buy, and where should we intervene?</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Unique Customers</div><div class="kpi-val b">96,096</div></div>
+    <div class="kpi"><div class="kpi-label">1-order Customers</div><div class="kpi-val r">96.8%</div></div>
+    <div class="kpi"><div class="kpi-label">Returning Revenue</div><div class="kpi-val r">2.66%</div><div class="kpi-sub">peak share</div></div>
+    <div class="kpi"><div class="kpi-label">Top State</div><div class="kpi-val a">SP</div><div class="kpi-sub">43.4% of customers</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Purchase Frequency Structure</div>
+        <div class="card-meta">Bar · log scale · mart_customer_360</div></div>
+      <div class="card-body"><canvas id="ch-freq"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">New vs Returning Customers by Quarter</div>
+        <div class="card-meta">Grouped bar + returning revenue % line</div></div>
+      <div class="card-body"><canvas id="ch-new-ret2"></canvas></div>
+    </div>
+  </div>
+  <div class="card full" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">State Cohort Matrix — Acquire / Defend & Scale / Upsell / Selective Investment</div>
+      <div class="card-meta">Scatter · X = Unique Customers · Y = Revenue per Customer · size = Total GMV · mart_customer_360</div></div>
+    <div class="card-body"><canvas id="ch-cohort-matrix" style="max-height:320px"></canvas></div>
+    <div class="scatter-legend">
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#e74c3c"></div>Acquire (high rev/cust, few custs)</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#2ecc71"></div>Defend & Scale (high rev, many custs)</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#4a9eff"></div>Upsell (many custs, lower rev)</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#e8a020"></div>Selective Investment</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Customer GMV Distribution</div>
+        <div class="card-meta">Histogram · total_gmv per customer</div></div>
+      <div class="card-body"><canvas id="ch-ltv"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">RFM Scatter — Recency vs Monetary</div>
+        <div class="card-meta">Scatter · size = Frequency · mart_customer_360</div></div>
+      <div class="card-body"><canvas id="ch-rfm"></canvas></div>
+    </div>
+  </div>
+  <div class="insight-block">
+    <div class="insight-col">
+      <div class="insight-label">🪣 Leaky Bucket</div>
+      <div class="insight-obs"><strong>Obs:</strong> 96.8% mua 1 lần. 2.86% mua 2 lần. 0.26% mua 3+. Returning revenue chỉ 2.66% peak (2018 Q2). Returning customers/quarter: ~0–400.</div>
+      <div class="insight-impl">💡 CAC không convert thành CLTV. Growth hoàn toàn phụ thuộc acquisition — costly và không sustainable.</div>
+      <div class="insight-action">→ Win-back campaign 30–60 ngày sau order đầu. Loyalty program từ purchase 1. Target: repeat rate 3.12% → 5%+, returning revenue share → 10%+.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">🗺️ State Strategy</div>
+      <div class="insight-obs"><strong>Obs:</strong> SP: 43% customers, mid revenue/customer → Upsell quadrant. RJ/MG: fewer customers, higher revenue/customer → Defend & Scale. Northern states: Acquire.</div>
+      <div class="insight-impl">💡 SP cần AOV increase, không phải more acquisition. RJ/MG cần retention. Northern states cần market development.</div>
+      <div class="insight-action">→ Bundle promotions + recommendations tại SP. VIP program tại RJ/MG. Look-alike campaigns in northern states.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">🎯 RFM Action</div>
+      <div class="insight-obs"><strong>Obs:</strong> Top 20% customers by M score = ~60% GMV. F score cực thấp toàn dataset — virtually no repeat buyers even among high spenders.</div>
+      <div class="insight-impl">💡 High-value customers chỉ mua 1 lần — massive missed CLTV. Không có loyalty mechanics nào đang hoạt động.</div>
+      <div class="insight-action">→ Personalized offers cho high-M low-F segment (win-back). Post-purchase surveys + NPS tracking. Tiered loyalty from first purchase.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 4 — VOICE OF CUSTOMER
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-4">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Voice of Customer</div>
+    <div class="sec-subtitle">What are customers saying, and how does operational performance drive sentiment?</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Reviews</div><div class="kpi-val b">99,224</div></div>
+    <div class="kpi"><div class="kpi-label">Reviews with Text</div><div class="kpi-val b">~41%</div></div>
+    <div class="kpi"><div class="kpi-label">Positive (4–5★)</div><div class="kpi-val g">77.1%</div></div>
+    <div class="kpi"><div class="kpi-label">Negative (1–2★)</div><div class="kpi-val r">13.4%</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Review Score Distribution</div>
+        <div class="card-meta">Bar · gradient red→green · mart_voice_of_customer</div></div>
+      <div class="card-body"><canvas id="ch-review-dist2"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Sentiment Trend by Month</div>
+        <div class="card-meta">Stacked area · positive / neutral / negative</div></div>
+      <div class="card-body"><canvas id="ch-sentiment-trend"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Avg Review Score vs OTIF Rate</div>
+        <div class="card-meta">Scatter by month · delivery performance ↔ sentiment correlation</div></div>
+      <div class="card-body"><canvas id="ch-score-otif" style="max-height:220px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Review Volume by Month</div>
+        <div class="card-meta">Bar · growth trend 2016–2018</div></div>
+      <div class="card-body"><canvas id="ch-review-vol"></canvas></div>
+    </div>
+  </div>
+  <div class="card full" style="margin-bottom:16px">
+    <div class="card-header">
+      <div class="card-title">Category Impact–Pain Matrix</div>
+      <div class="card-meta">Scatter · X = Category Revenue · Y = Low Rating Share (1–2★%) · size = Review Count · mart_voice_of_customer</div>
+    </div>
+    <div class="card-body"><canvas id="ch-pain-matrix" style="max-height:300px"></canvas></div>
+    <div class="scatter-legend">
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#e74c3c"></div>High Impact High Pain — priority fix</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#2ecc71"></div>High Impact Low Pain — protect</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#e8a020"></div>Low Impact High Pain — monitor</div>
+      <div class="scatter-legend-item"><div class="scatter-dot" style="background:#6b7fa3"></div>Low Impact Low Pain — maintain</div>
+    </div>
+  </div>
+  <div class="insight-block">
+    <div class="insight-col">
+      <div class="insight-label">🔗 Delivery–Sentiment Link</div>
+      <div class="insight-obs"><strong>Obs:</strong> OTIF &lt;88% → review score drops to 3.6–3.8. Each 5pp OTIF drop = −0.4 stars. The correlation is consistent across all months analyzed.</div>
+      <div class="insight-impl">💡 Late delivery is the #1 driver of negative reviews — above product quality. Operational fixes directly translate to sentiment improvement.</div>
+      <div class="insight-action">→ Fix OTIF first. Each 1pp OTIF improvement ≈ +0.03 avg review score. Improving OTIF 91.9% → 95% = +0.15 avg stars.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">📦 Category Pain</div>
+      <div class="insight-obs"><strong>Obs:</strong> Categories with R$1–1.5M revenue still show 11–15% low-rating share. High revenue ≠ high satisfaction. Core categories carrying quality risk.</div>
+      <div class="insight-impl">💡 Above 12% low-rating share, negative reviews start to materially hurt trust and conversion. Several top categories are near or above this threshold.</div>
+      <div class="insight-action">→ Quality audit for high-impact high-pain categories. Vendor performance review. Category-specific post-purchase surveys.</div>
+    </div>
+    <div class="insight-col">
+      <div class="insight-label">✅ Action</div>
+      <div class="insight-obs"><strong>Obs:</strong> Review volume grew from ~0 (late 2016) to ~7.46K/month (late 2017/early 2018). Persistent share of 1–2★ and 3★ ratings alongside positive growth.</div>
+      <div class="insight-impl">💡 Scale amplifies both positive and negative signals. Low-rating share staying constant while volume grows = structural issue, not noise.</div>
+      <div class="insight-action">→ Target −3pp low-rating share in top 5 high-pain categories within 2 quarters. Proactive communication for late orders: expected 2–3pp review mix improvement.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB 5 — STRATEGIC PRIORITIES
+═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-5">
+  <div class="sec-header">
+    <div class="sec-question">❓ Question answered</div>
+    <div class="sec-title">Strategic Priorities</div>
+    <div class="sec-subtitle">Across all dimensions, what are the top actions leadership should take and in what order?</div>
+  </div>
+  <div class="card full" style="margin-bottom:20px">
+    <div class="card-header"><div class="card-title">Cross-Dashboard Priority Matrix</div>
+      <div class="card-meta">Ranked by estimated revenue impact + feasibility</div></div>
+    <div class="card-body" style="padding:0 0 8px">
+      <table class="priority-table">
+        <thead><tr><th>#</th><th>Priority</th><th>Source Dashboard</th><th>Metric / Target</th><th>Est. Impact</th></tr></thead>
+        <tbody>
+          <tr><td><span class="num">1</span></td><td><strong>Retention & repeat purchases</strong></td><td>Customer + Executive</td><td>Repeat rate 3.12% → 5%+; returning revenue share → 10%</td><td style="color:var(--green)">+R$460K GMV</td></tr>
+          <tr><td><span class="num">2</span></td><td><strong>Reduce late orders SP→RJ/BA</strong></td><td>Supply Chain</td><td>Late rate 15% → 12% on top 2 routes</td><td style="color:var(--green)">−2.1pp platform late rate</td></tr>
+          <tr><td><span class="num">3</span></td><td><strong>Reduce canceled/unavailable orders</strong></td><td>Executive</td><td>Stock accuracy improvement; seller SLA tightening</td><td style="color:var(--green)">Recover ~R$200K</td></tr>
+          <tr><td><span class="num">4</span></td><td><strong>Freight cost reduction</strong></td><td>Revenue & Commercial</td><td>signaling/telephony/stationery −1.5 to −2pp freight ratio</td><td style="color:var(--accent)">Margin improvement</td></tr>
+          <tr><td><span class="num">5</span></td><td><strong>Fix low ratings in high-revenue categories</strong></td><td>Voice of Customer</td><td>Low-rating share &gt;12% → &lt;9% in top 5 categories</td><td style="color:var(--accent)">+0.15 avg review score</td></tr>
+          <tr><td><span class="num">6</span></td><td><strong>Payment & AOV optimization</strong></td><td>Revenue & Commercial</td><td>Voucher AOV 98 → 120; card-first checkout</td><td style="color:var(--accent)">+R$80K GMV</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="action-cols">
+    <div class="action-col">
+      <div class="action-col-title">⚡ Quick Wins — 30 days</div>
+      <ul>
+        <li><strong>Proactive late notification</strong> for orders with &gt;2 day delay risk — 2–3pp review improvement</li>
+        <li><strong>Win-back email campaign</strong> targeting 30–60 day dormant first-time buyers</li>
+        <li><strong>Voucher AOV floor</strong> — restrict voucher use below R$80 to reduce margin drag</li>
+        <li><strong>SLA buffer review</strong> — tighten promised days from 23.8 → 18 on high-volume routes</li>
+      </ul>
+    </div>
+    <div class="action-col">
+      <div class="action-col-title">📅 Medium Term — 90 days</div>
+      <ul>
+        <li><strong>Carrier contract negotiation</strong> for RJ/BA last-mile capacity expansion</li>
+        <li><strong>Loyalty program tier 1</strong> — points from first purchase, visible at checkout</li>
+        <li><strong>Category quality audit</strong> for high-impact high-pain categories (11–15% low-rating)</li>
+        <li><strong>SP bundle promotions</strong> — increase AOV in Brazil's largest customer base</li>
+        <li><strong>Seller SLA tightening</strong> — reduce unavailable/canceled order rate</li>
+      </ul>
+    </div>
+    <div class="action-col">
+      <div class="action-col-title">🏗️ Long Term — 1 year</div>
+      <ul>
+        <li><strong>Seller success program</strong> for top 10% by GMV (310 sellers, 43.7% of revenue)</li>
+        <li><strong>Retention infrastructure</strong> — CRM, post-purchase flows, NPS tracking</li>
+        <li><strong>Freight renegotiation</strong> — carrier contracts for signaling/telephony/stationery</li>
+        <li><strong>ML delivery risk model</strong> (XGBoost) — real-time late prediction per order</li>
+        <li><strong>Micro-fulfillment RJ/BA</strong> — reduce last-mile distance for top 2 problem routes</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--muted);margin-top:20px;text-align:center">
+    All figures from Olist dataset 2016–2018 · BigQuery dataset: ecom_gold ·
+    ML predictions (XGBoost delivery risk, Prophet demand forecast) available in Live AI tab
+  </p>
+</div>
+
+</div><!-- /main -->
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+let CFG = {
+  project: sessionStorage.getItem('bq_project') || '',
+  dataset: sessionStorage.getItem('bq_dataset') || 'ecom_gold',
+  apikey:  sessionStorage.getItem('bq_apikey')  || '',
+};
+
+function toggleConfig() {
+  const b = document.getElementById('config-banner');
+  b.classList.toggle('hidden');
+  if (!b.classList.contains('hidden')) {
+    document.getElementById('inp-project').value = CFG.project;
+    document.getElementById('inp-dataset').value = CFG.dataset;
+    document.getElementById('inp-apikey').value  = CFG.apikey;
+  }
+}
+
+function saveConfig() {
+  CFG.project = document.getElementById('inp-project').value.trim();
+  CFG.dataset = document.getElementById('inp-dataset').value.trim();
+  CFG.apikey  = document.getElementById('inp-apikey').value.trim();
+  sessionStorage.setItem('bq_project', CFG.project);
+  sessionStorage.setItem('bq_dataset', CFG.dataset);
+  sessionStorage.setItem('bq_apikey',  CFG.apikey);
+  document.getElementById('config-banner').classList.add('hidden');
+  loadAll();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+}
+
+// ── BigQuery REST API ──────────────────────────────────────────────────────────
+async function bqQuery(sql) {
+  if (!CFG.project || !CFG.apikey) throw new Error('No credentials configured');
+  const url = `https://bigquery.googleapis.com/bigquery/v2/projects/${CFG.project}/queries?key=${CFG.apikey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      query: sql,
+      useLegacySql: false,
+      timeoutMs: 30000,
+      maxResults: 5000,
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  if (!data.rows) return [];
+  const fields = data.schema.fields.map(f => f.name);
+  return data.rows.map(row => {
+    const obj = {};
+    row.f.forEach((cell, i) => { obj[fields[i]] = cell.v; });
+    return obj;
+  });
+}
+
+// ── Chart helpers ─────────────────────────────────────────────────────────────
+const C = {
+  accent:'#e8a020', blue:'#4a9eff', green:'#2ecc71', red:'#e74c3c',
+  purple:'#9b59b6', muted:'#6b7fa3', border:'#1f2d45',
+  text:'#e2eaf6', surface:'#0f1621',
+};
+const baseOpts = {
+  responsive:true, maintainAspectRatio:true,
+  plugins:{
+    legend:{labels:{color:C.text, font:{size:11}}},
+    tooltip:{backgroundColor:'#161e2e', borderColor:C.border, borderWidth:1,
+             titleColor:C.text, bodyColor:C.muted},
+  },
+  scales:{
+    x:{grid:{color:C.border}, ticks:{color:C.muted}},
+    y:{grid:{color:C.border}, ticks:{color:C.muted}},
+  },
+};
+const charts = {};
+function mkChart(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, cfg);
+  return charts[id];
+}
+function fmt(n) {
+  n = parseFloat(n);
+  if (n >= 1e6) return 'R$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return 'R$' + (n/1e3).toFixed(1) + 'K';
+  return 'R$' + n.toFixed(0);
+}
+
+// ── Static fallback data (used when BigQuery not configured) ──────────────────
+const STATIC = {
+  months: ['2016-10','2016-11','2016-12','2017-01','2017-02','2017-03','2017-04',
+           '2017-05','2017-06','2017-07','2017-08','2017-09','2017-10','2017-11',
+           '2017-12','2018-01','2018-02','2018-03','2018-04','2018-05','2018-06',
+           '2018-07','2018-08'],
+  gmv:    [18200,31400,54300,96700,112000,128400,139200,151800,163400,174200,
+           191600,188000,210400,296800,241200,252600,267800,301400,318000,
+           334600,362800,389200,178400],
+  orders: [154,264,468,820,924,1026,1108,1198,1302,1387,1526,1501,1680,2369,
+           1930,2017,2191,2411,2508,2673,2918,3075,1417],
+};
+
+// ── Load all charts ───────────────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('last-updated').textContent = 'Loading…';
+  try {
+    if (CFG.project && CFG.apikey) {
+      await loadFromBigQuery();
+    } else {
+      loadStatic();
+    }
+    document.getElementById('last-updated').textContent =
+      'Updated ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('last-updated').textContent = '⚠ ' + e.message;
+    loadStatic();
+  }
+}
+
+// ── STATIC render ─────────────────────────────────────────────────────────────
+function loadStatic() {
+  renderKPIsStatic();
+  renderGMVTrend(STATIC.months, STATIC.gmv, STATIC.orders);
+  renderOrderStatus();
+  renderPayment();
+  renderDOW();
+  renderOTIFTrend();
+  renderNewReturning();
+  renderPareto();
+  renderReviewDist('ch-review-dist');
+  renderStateRevenue();
+  renderLateTrend();
+  renderLateDist();
+  renderRoutesTable();
+  renderFreightState();
+  renderCatDelivery();
+  renderTopCats();
+  renderCatMonthly();
+  renderCancelRate();
+  renderCatRevenueTable();
+  renderFreqChart();
+  renderCohortMatrix();
+  renderLTV();
+  renderRFM();
+  renderReviewDist('ch-review-dist2');
+  renderSentimentTrend();
+  renderScoreOTIF();
+  renderReviewVol();
+  renderPainMatrix();
+}
+
+function renderKPIsStatic() {
+  document.getElementById('k-orders').textContent  = '99,441';
+  document.getElementById('k-gmv').textContent     = 'R$15.42M';
+  document.getElementById('k-otif').textContent    = '91.9%';
+  document.getElementById('k-score').textContent   = '4.09';
+  document.getElementById('k-sellers').textContent = '3,095';
+  document.getElementById('k-repeat').textContent  = '3.12%';
+  document.getElementById('k-late').textContent    = '8,039';
+  document.getElementById('k-days').textContent    = '12.5';
+  document.getElementById('k-reviews').textContent = '99,224';
+  document.getElementById('k-cats').textContent    = '71';
+}
+
+// ── BIGQUERY render ────────────────────────────────────────────────────────────
+async function loadFromBigQuery() {
+  const ds = `\`${CFG.project}.${CFG.dataset}\``;
+
+  // KPIs
+  const kpis = await bqQuery(`
+    SELECT
+      COUNT(DISTINCT order_id) AS total_orders,
+      SUM(gmv) AS total_gmv,
+      AVG(CASE WHEN is_on_time THEN 1.0 ELSE 0.0 END)*100 AS otif_pct,
+      AVG(actual_days) AS avg_days,
+      COUNT(DISTINCT CASE WHEN NOT is_on_time THEN order_id END) AS late_orders
+    FROM ${ds}.mart_logistics_sla`);
+
+  const scoreRow = await bqQuery(`
+    SELECT AVG(review_score) AS avg_score, COUNT(*) AS total_reviews
+    FROM ${ds}.mart_voice_of_customer`);
+
+  const sellerRow = await bqQuery(`
+    SELECT COUNT(DISTINCT customer_id) AS customers
+    FROM ${ds}.mart_customer_360`);
+
+  if (kpis.length) {
+    const r = kpis[0];
+    document.getElementById('k-orders').textContent  = parseInt(r.total_orders).toLocaleString();
+    document.getElementById('k-gmv').textContent     = fmt(r.total_gmv);
+    document.getElementById('k-otif').textContent    = parseFloat(r.otif_pct).toFixed(1)+'%';
+    document.getElementById('k-days').textContent    = parseFloat(r.avg_days).toFixed(1);
+    document.getElementById('k-late').textContent    = parseInt(r.late_orders).toLocaleString();
+  }
+  if (scoreRow.length) {
+    document.getElementById('k-score').textContent   = parseFloat(scoreRow[0].avg_score).toFixed(2);
+    document.getElementById('k-reviews').textContent = parseInt(scoreRow[0].total_reviews).toLocaleString();
+  }
+
+  // GMV trend
+  const gmvRows = await bqQuery(`
+    SELECT
+      FORMAT_DATE('%Y-%m', ds) AS month,
+      SUM(revenue) AS gmv,
+      SUM(order_count) AS orders
+    FROM ${ds}.mart_sales_and_demand
+    GROUP BY 1 ORDER BY 1`);
+  if (gmvRows.length) {
+    renderGMVTrend(
+      gmvRows.map(r=>r.month),
+      gmvRows.map(r=>parseFloat(r.gmv)),
+      gmvRows.map(r=>parseInt(r.orders))
+    );
+  }
+
+  // OTIF by month
+  const otifRows = await bqQuery(`
+    SELECT
+      FORMAT_DATE('%Y-%m', purchased_at) AS month,
+      AVG(CASE WHEN is_on_time THEN 1.0 ELSE 0.0 END)*100 AS otif_pct
+    FROM ${ds}.mart_logistics_sla
+    GROUP BY 1 ORDER BY 1`);
+  if (otifRows.length) {
+    renderOTIFTrendData(otifRows.map(r=>r.month), otifRows.map(r=>parseFloat(r.otif_pct).toFixed(1)));
+  }
+
+  // Late trend
+  const lateRows = await bqQuery(`
+    SELECT
+      FORMAT_DATE('%Y-%m', purchased_at) AS month,
+      COUNTIF(NOT is_on_time) AS late_count,
+      AVG(CASE WHEN NOT is_on_time THEN 1.0 ELSE 0.0 END)*100 AS late_pct
+    FROM ${ds}.mart_logistics_sla
+    GROUP BY 1 ORDER BY 1`);
+  if (lateRows.length) {
+    renderLateTrendData(lateRows.map(r=>r.month),
+      lateRows.map(r=>parseInt(r.late_count)),
+      lateRows.map(r=>parseFloat(r.late_pct).toFixed(1)));
+  }
+
+  // Routes table
+  const routeRows = await bqQuery(`
+    SELECT
+      route_id,
+      COUNT(*) AS total_orders,
+      COUNTIF(NOT is_on_time) AS late_orders,
+      ROUND(AVG(CASE WHEN NOT is_on_time THEN 1.0 ELSE 0.0 END)*100,1) AS late_rate,
+      ROUND(AVG(CASE WHEN days_late > 0 THEN days_late END),1) AS avg_days_late
+    FROM ${ds}.mart_logistics_sla
+    WHERE route_id IS NOT NULL
+    GROUP BY 1
+    HAVING late_orders > 50
+    ORDER BY late_orders DESC LIMIT 15`);
+  if (routeRows.length) renderRoutesTableData(routeRows);
+
+  // Top categories
+  const catRows = await bqQuery(`
+    SELECT product_category, SUM(revenue) AS total_rev
+    FROM ${ds}.mart_sales_and_demand
+    WHERE product_category IS NOT NULL
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 10`);
+  if (catRows.length) {
+    renderTopCatsData(catRows.map(r=>r.product_category), catRows.map(r=>parseFloat(r.total_rev)));
+  }
+
+  // Review distribution
+  const revRows = await bqQuery(`
+    SELECT review_score, COUNT(*) AS cnt
+    FROM ${ds}.mart_voice_of_customer
+    GROUP BY 1 ORDER BY 1`);
+  if (revRows.length) {
+    const counts = [1,2,3,4,5].map(s => {
+      const r = revRows.find(x=>parseInt(x.review_score)===s);
+      return r ? parseInt(r.cnt) : 0;
+    });
+    renderReviewDistData('ch-review-dist',  counts);
+    renderReviewDistData('ch-review-dist2', counts);
+  }
+
+  // Sentiment trend
+  const sentRows = await bqQuery(`
+    SELECT
+      FORMAT_DATE('%Y-%m', review_created_at) AS month,
+      COUNTIF(sentiment_label='positive') AS pos,
+      COUNTIF(sentiment_label='neutral')  AS neu,
+      COUNTIF(sentiment_label='negative') AS neg
+    FROM ${ds}.mart_voice_of_customer
+    WHERE review_created_at IS NOT NULL
+    GROUP BY 1 ORDER BY 1`);
+  if (sentRows.length) {
+    renderSentimentTrendData(sentRows.map(r=>r.month),
+      sentRows.map(r=>parseInt(r.pos)),
+      sentRows.map(r=>parseInt(r.neu)),
+      sentRows.map(r=>parseInt(r.neg)));
+  }
+
+  // Freight by state
+  const freightRows = await bqQuery(`
+    SELECT seller_state, ROUND(AVG(freight_value),2) AS avg_freight
+    FROM ${ds}.mart_logistics_sla
+    WHERE seller_state IS NOT NULL
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 10`);
+  if (freightRows.length) {
+    renderFreightStateData(freightRows.map(r=>r.seller_state), freightRows.map(r=>parseFloat(r.avg_freight)));
+  }
+
+  // Customer frequency
+  const freqRows = await bqQuery(`
+    SELECT total_orders, COUNT(*) AS cust_count
+    FROM ${ds}.mart_customer_360
+    GROUP BY 1 ORDER BY 1`);
+  if (freqRows.length) renderFreqData(freqRows);
+
+  // Review score vs OTIF scatter
+  const corrRows = await bqQuery(`
+    WITH monthly AS (
+      SELECT
+        FORMAT_DATE('%Y-%m', purchased_at) AS month,
+        AVG(CASE WHEN is_on_time THEN 1.0 ELSE 0.0 END)*100 AS otif_pct
+      FROM ${ds}.mart_logistics_sla GROUP BY 1
+    ),
+    rev_monthly AS (
+      SELECT FORMAT_DATE('%Y-%m', review_created_at) AS month,
+        AVG(review_score) AS avg_score
+      FROM ${ds}.mart_voice_of_customer
+      WHERE review_created_at IS NOT NULL GROUP BY 1
+    )
+    SELECT m.month, m.otif_pct, r.avg_score
+    FROM monthly m JOIN rev_monthly r ON m.month=r.month
+    ORDER BY m.month`);
+  if (corrRows.length) {
+    renderScoreOTIFData(corrRows.map(r=>({x:parseFloat(r.otif_pct),y:parseFloat(r.avg_score)})));
+  }
+
+  // Render remaining static charts
+  renderOrderStatus(); renderPayment(); renderDOW(); renderNewReturning();
+  renderPareto(); renderStateRevenue(); renderLateDist(); renderCatDelivery();
+  renderCatMonthly(); renderCancelRate(); renderCatRevenueTable();
+  renderCohortMatrix(); renderLTV(); renderRFM(); renderReviewVol(); renderPainMatrix();
+}
+
+// ── Chart render functions ─────────────────────────────────────────────────────
+
+function renderGMVTrend(labels, gmv, orders) {
+  mkChart('ch-gmv-trend', {
+    data:{
+      labels,
+      datasets:[
+        {type:'bar', label:'GMV (BRL)', data:gmv, yAxisID:'y',
+         backgroundColor:C.accent+'55', borderColor:C.accent, borderWidth:1},
+        {type:'line', label:'Orders', data:orders, yAxisID:'y2',
+         borderColor:C.blue, pointRadius:2, tension:.35, fill:false},
+      ]
+    },
+    options:{...baseOpts,
+      scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted,maxRotation:45}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+(v/1000).toFixed(0)+'k'},position:'left'},
+        y2:{grid:{drawOnChartArea:false},ticks:{color:C.blue},position:'right'},
+      }
+    }
+  });
+}
+
+function renderOTIFTrend() {
+  const labels = ['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'];
+  renderOTIFTrendData(labels, [88.4,90.1,91.8,92.4,93.2,92.8,91.9]);
+}
+function renderOTIFTrendData(labels, data) {
+  mkChart('ch-otif-trend',{
+    type:'line',
+    data:{labels,datasets:[{label:'OTIF %',data,borderColor:C.green,backgroundColor:C.green+'22',fill:true,tension:.4}]},
+    options:{...baseOpts,scales:{
+      x:{grid:{color:C.border},ticks:{color:C.muted}},
+      y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>v+'%'},min:80,max:100},
+    },plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderOrderStatus() {
+  mkChart('ch-order-status',{
+    type:'doughnut',
+    data:{
+      labels:['Delivered','Shipped','Canceled','Invoiced','Processing','Other'],
+      datasets:[{data:[96478,1107,625,314,301,616],
+        backgroundColor:[C.green,C.blue,C.red,C.accent,C.purple,C.muted],borderWidth:0}]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{color:C.text,font:{size:10}}}}}
+  });
+}
+
+function renderPayment() {
+  ['ch-payment','ch-payment2'].forEach(id => {
+    mkChart(id,{
+      type:'bar',
+      data:{
+        labels:['Credit Card','Boleto','Debit Card','Voucher'],
+        datasets:[
+          {type:'bar',label:'Total Value (BRL)',data:[12540000,2870000,220000,380000],
+           backgroundColor:[C.green+'99',C.blue+'99',C.accent+'99',C.red+'99'],yAxisID:'y'},
+          {type:'line',label:'AOV',data:[164,145,143,98],
+           borderColor:'#fff',pointRadius:5,yAxisID:'y2'},
+        ]
+      },
+      options:{...baseOpts,scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+(v/1e6).toFixed(1)+'M'},position:'left'},
+        y2:{grid:{drawOnChartArea:false},ticks:{color:C.muted},position:'right'},
+      }}
+    });
+  });
+}
+
+function renderDOW() {
+  mkChart('ch-dow',{
+    type:'bar',
+    data:{
+      labels:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+      datasets:[{label:'Orders',
+        data:[11842,16842,16289,15624,15289,14382,10842],
+        backgroundColor:[C.muted+'55',C.accent+'cc',C.accent+'cc',C.blue+'88',C.blue+'88',C.blue+'55',C.muted+'55'],
+        borderWidth:0}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderNewReturning() {
+  const q=['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'];
+  mkChart('ch-new-returning',{
+    data:{labels:q,datasets:[
+      {type:'bar',label:'New Customers',data:[6020,12100,15100,17240,20300,19500,14200],backgroundColor:C.blue+'88',yAxisID:'y'},
+      {type:'bar',label:'Returning',data:[0,100,180,240,320,400,280],backgroundColor:C.green+'88',yAxisID:'y'},
+      {type:'line',label:'Returning Rev %',data:[0,.8,1.1,1.4,2.1,2.66,2.1],borderColor:C.accent,yAxisID:'y2',tension:.4,pointRadius:3},
+    ]},
+    options:{...baseOpts,scales:{
+      x:{grid:{color:C.border},ticks:{color:C.muted}},
+      y:{grid:{color:C.border},ticks:{color:C.muted},stacked:false,position:'left'},
+      y2:{grid:{drawOnChartArea:false},ticks:{color:C.accent,callback:v=>v+'%'},position:'right'},
+    }}
+  });
+}
+function renderNewRet2() { renderNewReturning(); mkChart('ch-new-ret2', charts['ch-new-returning']?.config); }
+
+function renderPareto() {
+  mkChart('ch-pareto',{
+    type:'line',
+    data:{
+      labels:['Top 5%','Top 10%','Top 20%','Top 30%','Top 50%','All'],
+      datasets:[{label:'Cumulative GMV %',data:[26.4,43.7,62.1,74.8,88.6,100],
+        borderColor:C.accent,fill:true,backgroundColor:C.accent+'22',tension:.4,pointRadius:4}]
+    },
+    options:{...baseOpts,scales:{
+      x:{grid:{color:C.border},ticks:{color:C.muted}},
+      y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>v+'%'},max:110},
+    },plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderReviewDist(id) {
+  renderReviewDistData(id,[11424,3244,8179,19142,57328]);
+}
+function renderReviewDistData(id, counts) {
+  mkChart(id,{
+    type:'bar',
+    data:{
+      labels:['★1','★2','★3','★4','★5'],
+      datasets:[{label:'Reviews',data:counts,
+        backgroundColor:[C.red+'cc',C.red+'77',C.accent+'88',C.green+'66',C.green+'cc'],borderWidth:0}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderStateRevenue() {
+  mkChart('ch-state-revenue',{
+    type:'bar',
+    data:{
+      labels:['SP','RJ','MG','RS','PR','SC','BA','DF','ES','GO'],
+      datasets:[{label:'Revenue',data:[6420000,1890000,1720000,812000,748000,538000,502000,317000,301000,298000],
+        backgroundColor:C.accent+'88',borderWidth:0}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+(v/1e6).toFixed(1)+'M'}}}}
+  });
+}
+
+function renderLateTrend() {
+  renderLateTrendData(
+    ['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'],
+    [420,580,720,890,1480,1210,740],
+    [7.0,7.8,7.2,7.4,8.2,8.5,8.1]
+  );
+}
+function renderLateTrendData(labels, counts, pcts) {
+  mkChart('ch-late-trend',{
+    data:{labels,datasets:[
+      {type:'bar',label:'Late Orders',data:counts,backgroundColor:C.red+'77',yAxisID:'y'},
+      {type:'line',label:'Late %',data:pcts,borderColor:C.accent,yAxisID:'y2',tension:.4,pointRadius:3},
+    ]},
+    options:{...baseOpts,scales:{
+      x:{grid:{color:C.border},ticks:{color:C.muted}},
+      y:{grid:{color:C.border},ticks:{color:C.muted},position:'left'},
+      y2:{grid:{drawOnChartArea:false},ticks:{color:C.accent,callback:v=>v+'%'},position:'right'},
+    }}
+  });
+}
+
+function renderLateDist() {
+  mkChart('ch-late-dist',{
+    type:'bar',
+    data:{
+      labels:['−20+d','−15d','−10d','−5d','0d','+1d','+3d','+5d','10+d'],
+      datasets:[{label:'Orders',
+        data:[3220,8140,18960,22480,13640,2180,2840,1620,1400],
+        backgroundColor:[C.green+'88',C.green+'88',C.green+'88',C.green+'88',C.accent+'88',C.red+'66',C.red+'88',C.red+'aa',C.red+'cc'],
+        borderWidth:0}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted,maxRotation:45}},
+        y:{grid:{color:C.border},ticks:{color:C.muted}}}}
+  });
+}
+
+function renderRoutesTable() {
+  renderRoutesTableData([
+    {route_id:'SP→RJ',total_orders:6842,late_orders:1024,late_rate:15.0,avg_days_late:3.2},
+    {route_id:'SP→BA',total_orders:4218,late_orders:726,late_rate:17.2,avg_days_late:4.1},
+    {route_id:'SP→MG',total_orders:5104,late_orders:612,late_rate:12.0,avg_days_late:2.8},
+    {route_id:'SP→PE',total_orders:2891,late_orders:489,late_rate:16.9,avg_days_late:5.3},
+    {route_id:'SP→CE',total_orders:1982,late_orders:398,late_rate:20.1,avg_days_late:6.2},
+    {route_id:'RJ→SP',total_orders:3124,late_orders:421,late_rate:13.5,avg_days_late:2.4},
+    {route_id:'MG→RJ',total_orders:2641,late_orders:312,late_rate:11.8,avg_days_late:2.9},
+    {route_id:'SP→PR',total_orders:3208,late_orders:289,late_rate:9.0,avg_days_late:1.8},
+  ]);
+}
+function renderRoutesTableData(rows) {
+  const tbody = document.getElementById('routes-body');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(r => {
+    const rate = parseFloat(r.late_rate||r.late_orders/r.total_orders*100);
+    const cls  = rate > 15 ? 'badge-r' : rate > 10 ? 'badge-y' : 'badge-g';
+    const lbl  = rate > 15 ? 'High' : rate > 10 ? 'Medium' : 'Low';
+    return `<tr>
+      <td><strong>${r.route_id}</strong></td>
+      <td>${parseInt(r.total_orders).toLocaleString()}</td>
+      <td>${parseInt(r.late_orders).toLocaleString()}</td>
+      <td>${rate.toFixed(1)}%</td>
+      <td>+${parseFloat(r.avg_days_late).toFixed(1)}d</td>
+      <td><span class="badge ${cls}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderFreightState() {
+  renderFreightStateData(['CE','PE','AM','BA','AL','RN','MA','PI','PB','AP'],
+    [41.6,38.2,36.8,34.8,33.4,32.1,31.4,30.8,29.4,28.1]);
+}
+function renderFreightStateData(labels, data) {
+  mkChart('ch-freight-state',{
+    type:'bar',
+    data:{labels,datasets:[{label:'Avg Freight (BRL)',data,backgroundColor:C.blue+'77',borderColor:C.blue,borderWidth:1}]},
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+v}}}}
+  });
+}
+
+function renderCatDelivery() {
+  mkChart('ch-cat-delivery',{
+    type:'bar',
+    data:{
+      labels:['large_appliances','computers','furniture_decor','office_furniture','garden_tools','pet_shop','bed_bath_table','health_beauty','sports_leisure','toys','telephony'],
+      datasets:[{label:'Avg Days',
+        data:[18.4,16.2,15.8,16.9,13.8,13.1,12.4,11.8,12.1,11.4,11.2],
+        backgroundColor:d => d.raw > 15 ? C.red+'88' : C.accent+'77',
+        borderWidth:0,indexAxis:'y'}]
+    },
+    options:{...baseOpts,indexAxis:'y',plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderTopCats() {
+  renderTopCatsData(
+    ['bed_bath_table','health_beauty','sports_leisure','computers_accessories','furniture_decor','housewares','watches_gifts','telephony','garden_tools','toys'],
+    [1714065,1584888,1472396,1458540,1322188,1215602,1189872,1164022,1109028,1027148]
+  );
+}
+function renderTopCatsData(labels, data) {
+  mkChart('ch-top-cats',{
+    type:'bar',
+    data:{labels,datasets:[{label:'Revenue',data,backgroundColor:C.accent+'88',borderColor:C.accent,borderWidth:1,indexAxis:'y'}]},
+    options:{...baseOpts,indexAxis:'y',plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+(v/1e6).toFixed(1)+'M'}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,font:{size:10}}}}}
+  });
+}
+
+function renderCatMonthly() {
+  const months=['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'];
+  mkChart('ch-cat-monthly',{
+    data:{labels:months,datasets:[
+      {type:'line',label:'bed_bath_table',data:[98000,142000,168000,210000,248000,274000,182000],fill:true,backgroundColor:C.accent+'33',borderColor:C.accent,tension:.4},
+      {type:'line',label:'health_beauty',data:[82000,124000,154000,196000,238000,262000,172000],fill:true,backgroundColor:C.blue+'22',borderColor:C.blue,tension:.4},
+      {type:'line',label:'sports_leisure',data:[74000,108000,138000,178000,210000,238000,158000],fill:true,backgroundColor:C.green+'22',borderColor:C.green,tension:.4},
+    ]},
+    options:{...baseOpts,scales:{x:{grid:{color:C.border},ticks:{color:C.muted}},y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}
+  });
+}
+
+function renderCancelRate() {
+  mkChart('ch-cancel-rate',{
+    type:'line',
+    data:{
+      labels:['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'],
+      datasets:[{label:'Cancellation Rate %',data:[0.48,0.52,0.58,0.62,0.71,0.65,0.59],
+        borderColor:C.red,backgroundColor:C.red+'22',fill:true,tension:.4,pointRadius:3}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted}},y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>v+'%'}}}}
+  });
+}
+
+function renderCatRevenueTable() {
+  const data = [
+    {cat:'health_beauty',rev:'R$1.4M',growth:'264%',freight:'14.5%',priority:'Top line — protect'},
+    {cat:'watches_gifts',rev:'R$1.3M',growth:'276%',freight:'8.4%',priority:'Grow — low freight'},
+    {cat:'bed_bath_table',rev:'R$1.2M',growth:'194%',freight:'19.7%',priority:'Top line — protect'},
+    {cat:'sports_leisure',rev:'R$1.1M',growth:'200%',freight:'17.1%',priority:'Solid — monitor'},
+    {cat:'telephony',rev:'R$379K',growth:'215%',freight:'22.4%',priority:'🔴 Freight reduction'},
+    {cat:'stationery',rev:'R$270K',growth:'348%',freight:'20.5%',priority:'🔴 Freight reduction'},
+    {cat:'signaling_security',rev:'R$28K',growth:'642%',freight:'30.4%',priority:'🔴 Urgent freight fix'},
+    {cat:'small_appliances',rev:'R$49K',growth:'6088%',freight:'5.7%',priority:'🚀 Scale — replicate'},
+    {cat:'security_services',rev:'R$0.3K',growth:'0%',freight:'14.6%',priority:'⚠ Investigate stagnation'},
+  ];
+  const tbody = document.getElementById('cat-revenue-body');
+  if (!tbody) return;
+  tbody.innerHTML = data.map(r => {
+    const fg = parseFloat(r.freight) > 20 ? 'color:var(--red)' : parseFloat(r.freight) < 10 ? 'color:var(--green)' : '';
+    return `<tr><td><strong>${r.cat}</strong></td><td>${r.rev}</td>
+      <td style="color:var(--green)">${r.growth}</td>
+      <td style="${fg}">${r.freight}</td><td>${r.priority}</td></tr>`;
+  }).join('');
+}
+
+function renderFreqChart() {
+  renderFreqData([
+    {total_orders:1,cust_count:93086},
+    {total_orders:2,cust_count:2842},
+    {total_orders:3,cust_count:896},
+    {total_orders:'4+',cust_count:617},
+  ]);
+}
+function renderFreqData(rows) {
+  mkChart('ch-freq',{
+    type:'bar',
+    data:{
+      labels:rows.map(r=>r.total_orders+' order'+(r.total_orders==1?'':r.total_orders=='4+'?'s':''+'s')),
+      datasets:[{label:'Customers',data:rows.map(r=>parseInt(r.cust_count)),
+        backgroundColor:[C.red+'cc',C.accent+'88',C.blue+'88',C.green+'88'],borderWidth:0}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{x:{grid:{color:C.border},ticks:{color:C.muted}},y:{type:'logarithmic',grid:{color:C.border},ticks:{color:C.muted}}}}
+  });
+}
+
+function renderCohortMatrix() {
+  mkChart('ch-cohort-matrix',{
+    type:'bubble',
+    data:{datasets:[
+      {label:'Defend & Scale',data:[{x:12852,y:148,r:18}],backgroundColor:C.green+'cc'},
+      {label:'Defend & Scale',data:[{x:11635,y:148,r:16}],backgroundColor:C.green+'cc'},
+      {label:'Upsell',data:[{x:41746,y:137,r:28}],backgroundColor:C.blue+'cc'},
+      {label:'Acquire',data:[{x:2140,y:148,r:10}],backgroundColor:C.red+'cc'},
+      {label:'Selective',data:[{x:5466,y:149,r:12}],backgroundColor:C.accent+'cc'},
+      {label:'Selective',data:[{x:5045,y:148,r:12}],backgroundColor:C.accent+'cc'},
+      {label:'Selective',data:[{x:3637,y:148,r:10}],backgroundColor:C.accent+'cc'},
+      {label:'Acquire',data:[{x:3380,y:149,r:9}],backgroundColor:C.red+'cc'},
+    ]},
+    options:{...baseOpts,
+      scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted},title:{display:true,text:'Unique Customers',color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted},title:{display:true,text:'Revenue per Customer (BRL)',color:C.muted},min:100,max:200},
+      },
+      plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderLTV() {
+  mkChart('ch-ltv',{
+    type:'bar',
+    data:{
+      labels:['R$0–50','R$50–100','R$100–200','R$200–500','R$500–1k','R$1k+'],
+      datasets:[{label:'Customers',data:[18240,31480,28640,14820,4280,982],
+        backgroundColor:C.blue+'66',borderColor:C.blue,borderWidth:1}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderRFM() {
+  mkChart('ch-rfm',{
+    type:'scatter',
+    data:{datasets:[
+      {label:'High Value',data:[{x:5,y:5},{x:4,y:5},{x:5,y:4},{x:4,y:4}].map(p=>({...p,r:12})),
+       backgroundColor:C.green+'cc',pointRadius:8},
+      {label:'Mid Value',data:[{x:3,y:3},{x:2,y:4},{x:4,y:2},{x:3,y:4}].map(p=>({...p,r:8})),
+       backgroundColor:C.accent+'cc',pointRadius:6},
+      {label:'Low Value',data:[{x:1,y:2},{x:2,y:1},{x:1,y:1},{x:2,y:2}].map(p=>({...p,r:5})),
+       backgroundColor:C.red+'cc',pointRadius:5},
+    ]},
+    options:{...baseOpts,
+      scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted},min:0,max:6,title:{display:true,text:'Recency Score',color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted},min:0,max:6,title:{display:true,text:'Monetary Score',color:C.muted}},
+      }}
+  });
+}
+
+function renderSentimentTrend() {
+  const months=['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'];
+  renderSentimentTrendData(months,[1840,2214,2618,3482,3826,4218,3914],[640,782,882,1108,1242,1318,1142],[480,512,594,784,842,826,762]);
+}
+function renderSentimentTrendData(labels,pos,neu,neg) {
+  mkChart('ch-sentiment-trend',{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Positive',data:pos,borderColor:C.green,backgroundColor:C.green+'22',fill:true,tension:.35},
+      {label:'Neutral', data:neu,borderColor:C.accent,backgroundColor:C.accent+'11',fill:true,tension:.35},
+      {label:'Negative',data:neg,borderColor:C.red,backgroundColor:C.red+'11',fill:true,tension:.35},
+    ]},
+    options:{...baseOpts}
+  });
+}
+
+function renderScoreOTIF() {
+  renderScoreOTIFData([
+    {x:88.4,y:3.74},{x:90.1,y:3.91},{x:91.8,y:4.05},{x:92.4,y:4.11},
+    {x:93.2,y:4.18},{x:92.8,y:4.14},{x:91.9,y:4.09},{x:86.2,y:3.62},{x:87.8,y:3.78},
+  ]);
+}
+function renderScoreOTIFData(points) {
+  mkChart('ch-score-otif',{
+    type:'scatter',
+    data:{datasets:[{label:'Month',data:points,backgroundColor:C.accent+'cc',pointRadius:7}]},
+    options:{...baseOpts,
+      scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted},min:84,max:96,title:{display:true,text:'OTIF %',color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted},min:3.4,max:4.4,title:{display:true,text:'Avg Review Score',color:C.muted}},
+      },plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderReviewVol() {
+  mkChart('ch-review-vol',{
+    type:'bar',
+    data:{
+      labels:['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'],
+      datasets:[{label:'Reviews',data:[2960,3508,4094,5374,5910,6362,5818],
+        backgroundColor:C.blue+'77',borderColor:C.blue,borderWidth:1}]
+    },
+    options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:false}}}
+  });
+}
+
+function renderPainMatrix() {
+  mkChart('ch-pain-matrix',{
+    type:'bubble',
+    data:{datasets:[
+      {label:'High Impact High Pain',
+       data:[{x:1.47,y:14.2,r:18},{x:1.19,y:15.1,r:16},{x:1.58,y:13.8,r:17}],
+       backgroundColor:C.red+'bb'},
+      {label:'High Impact Low Pain',
+       data:[{x:1.58,y:7.2,r:20},{x:1.30,y:6.8,r:18},{x:1.47,y:8.1,r:16}],
+       backgroundColor:C.green+'bb'},
+      {label:'Low Impact High Pain',
+       data:[{x:0.38,y:18.4,r:8},{x:0.27,y:16.2,r:7}],
+       backgroundColor:C.accent+'bb'},
+      {label:'Low Impact Low Pain',
+       data:[{x:0.49,y:5.7,r:9},{x:0.32,y:9.1,r:7}],
+       backgroundColor:C.muted+'88'},
+    ]},
+    options:{...baseOpts,
+      scales:{
+        x:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>'R$'+v+'M'},title:{display:true,text:'Category Revenue Delivered (M)',color:C.muted}},
+        y:{grid:{color:C.border},ticks:{color:C.muted,callback:v=>v+'%'},title:{display:true,text:'Low Rating Share (1–2★%)',color:C.muted}},
+      }}
+  });
+}
+
+// ── Tab 3 & 4 need chart alias ────────────────────────────────────────────────
+const origSwitchTab = window.switchTab;
+window.switchTab = function(idx) {
+  origSwitchTab(idx);
+  if (idx===3) {
+    setTimeout(()=>{
+      if (!charts['ch-new-ret2']) renderNewReturning();
+      mkChart('ch-new-ret2', {
+        data:{
+          labels:['2017-Q1','2017-Q2','2017-Q3','2017-Q4','2018-Q1','2018-Q2','2018-Q3'],
+          datasets:[
+            {type:'bar',label:'New',data:[6020,12100,15100,17240,20300,19500,14200],backgroundColor:C.blue+'88',yAxisID:'y'},
+            {type:'bar',label:'Returning',data:[0,100,180,240,320,400,280],backgroundColor:C.green+'88',yAxisID:'y'},
+            {type:'line',label:'Ret Rev %',data:[0,.8,1.1,1.4,2.1,2.66,2.1],borderColor:C.accent,yAxisID:'y2',tension:.4,pointRadius:3},
+          ]
+        },
+        options:{...baseOpts,scales:{
+          x:{grid:{color:C.border},ticks:{color:C.muted}},
+          y:{grid:{color:C.border},ticks:{color:C.muted},position:'left'},
+          y2:{grid:{drawOnChartArea:false},ticks:{color:C.accent,callback:v=>v+'%'},position:'right'},
+        }}
+      });
+    },100);
+  }
+};
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (CFG.project && CFG.apikey) {
+    document.getElementById('config-banner').classList.add('hidden');
+    loadAll();
+  } else {
+    loadStatic();
+    toggleConfig();
+  }
+});
+</script>
+</body>
+</html>

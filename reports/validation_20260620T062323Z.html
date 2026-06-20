@@ -1,0 +1,121 @@
+<!DOCTYPE html><html><head><meta charset='UTF-8'>
+<title>GE Validation 20260620T062323Z</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#0d1117;color:#e6edf3;padding:32px}
+h1{color:#f0883e} .kpis{display:flex;gap:16px;margin:16px 0 28px}
+.kpi{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px 20px}
+.kv{font-size:28px;font-weight:700;font-family:monospace}
+.g{color:#3fb950} .r{color:#f85149} .b{color:#58a6ff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #30363d}
+th{background:#1c2128;color:#8b949e} tr:hover td{background:#1c2128}
+code{background:#1c2128;padding:2px 6px;border-radius:4px;font-size:12px}
+</style></head><body>
+<h1>Great Expectations — Validation Report</h1>
+<p style='color:#8b949e'>Run: 20260620T062323Z | DuckDB: data\ecom.duckdb</p>
+<div class='kpis'>
+  <div class='kpi'><div style='color:#8b949e;font-size:11px'>PASSED</div>
+    <div class='kv g'>92</div></div>
+  <div class='kpi'><div style='color:#8b949e;font-size:11px'>FAILED</div>
+    <div class='kv r'>0</div></div>
+  <div class='kpi'><div style='color:#8b949e;font-size:11px'>TOTAL</div>
+    <div class='kv b'>92</div></div>
+  <div class='kpi'><div style='color:#8b949e;font-size:11px'>PASS RATE</div>
+    <div class='kv' style='color:#3fb950'>100%</div></div>
+</div>
+<table><thead><tr><th>Layer</th><th>Table</th>
+<th>Expectation</th><th>Result</th></tr></thead>
+<tbody><tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_values_to_be_unique(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_values_to_not_be_null(column=customer_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_values_to_be_in_set(column=order_status, value_set=['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'approved', 'unavailable', 'created'])</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_values_to_not_be_null(column=order_purchase_timestamp)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_to_exist(column=_ingested_at)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_orders</code></td><td>expect_column_to_exist(column=_batch_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_customers</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_customers</code></td><td>expect_column_values_to_be_unique(column=customer_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_customers</code></td><td>expect_column_values_to_not_be_null(column=customer_unique_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_customers</code></td><td>expect_column_values_to_not_be_null(column=customer_state)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_customers</code></td><td>expect_column_value_lengths_to_equal(column=customer_state, value=2)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_table_row_count_to_be_between(min_value=100000, max_value=150000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_not_be_null(column=product_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_not_be_null(column=seller_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_be_between(column=price, min_value=0.01, max_value=10000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_be_between(column=freight_value, min_value=0, max_value=500)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_order_items</code></td><td>expect_column_values_to_be_between(column=order_item_id, min_value=1, max_value=21)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_reviews</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_reviews</code></td><td>expect_column_values_to_not_be_null(column=review_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_reviews</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_reviews</code></td><td>expect_column_values_to_be_between(column=review_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_products</code></td><td>expect_table_row_count_to_be_between(min_value=30000, max_value=40000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_products</code></td><td>expect_column_values_to_be_unique(column=product_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_products</code></td><td>expect_column_values_to_not_be_null(column=product_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_sellers</code></td><td>expect_table_row_count_to_be_between(min_value=2000, max_value=5000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_sellers</code></td><td>expect_column_values_to_be_unique(column=seller_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_sellers</code></td><td>expect_column_values_to_not_be_null(column=seller_state)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_sellers</code></td><td>expect_column_value_lengths_to_equal(column=seller_state, value=2)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_payments</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_payments</code></td><td>expect_column_values_to_be_in_set(column=payment_type, value_set=['credit_card', 'boleto', 'voucher', 'debit_card', 'not_defined'])</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_payments</code></td><td>expect_column_values_to_be_between(column=payment_value, min_value=0, max_value=15000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_payments</code></td><td>expect_column_values_to_be_between(column=payment_installments, min_value=0, max_value=24)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_geolocation</code></td><td>expect_table_row_count_to_be_between(min_value=1000, max_value=30000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_geolocation</code></td><td>expect_column_values_to_be_between(column=geolocation_lat, min_value=-35, max_value=6, mostly=0.99)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_geolocation</code></td><td>expect_column_values_to_be_between(column=geolocation_lng, min_value=-75, max_value=-28, mostly=0.99)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_category_xlat</code></td><td>expect_table_row_count_to_be_between(min_value=60, max_value=80)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>BRONZE</td><td><code>bronze_category_xlat</code></td><td>expect_column_values_to_not_be_null(column=product_category_name_english)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_table_row_count_to_be_between(min_value=80000, max_value=110000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_values_to_be_unique(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_to_exist(column=is_on_time)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_to_exist(column=days_late)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_values_to_be_in_set(column=is_on_time, value_set=[True, False])</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_orders</code></td><td>expect_column_pair_values_A_to_be_greater_than_B(column_A=delivered_at, column_B=purchased_at, or_equal=False, ignore_row_if=either_value_is_missing)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_table_row_count_to_be_between(min_value=100000, max_value=150000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_column_values_to_not_be_null(column=category_en)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_column_values_to_be_between(column=price, min_value=0.01, max_value=10000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_column_values_to_be_between(column=total_item_value, min_value=0.01, max_value=11000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_order_items</code></td><td>expect_column_values_to_not_be_null(column=seller_state)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_column_values_to_not_be_null(column=review_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_column_values_to_be_between(column=review_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_column_values_to_be_between(column=sentiment_proxy, min_value=-1.0, max_value=1.0)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>SILVER</td><td><code>stg_reviews</code></td><td>expect_column_values_to_be_in_set(column=sentiment_label, value_set=['positive', 'neutral', 'negative'])</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_table_row_count_to_be_between(min_value=80000, max_value=110000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_be_unique(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_not_be_null(column=route_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_not_be_null(column=is_on_time)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_be_between(column=freight_value, min_value=0, max_value=2000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>expect_column_values_to_be_between(column=actual_days, min_value=0, max_value=365)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_logistics_sla</code></td><td>otif_rate_between_80_and_100 (actual=91.9%)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_not_be_null(column=customer_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_unique(column=customer_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_between(column=total_gmv, min_value=0.01, max_value=50000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_between(column=r_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_between(column=f_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_between(column=m_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_customer_360</code></td><td>expect_column_values_to_be_between(column=otif_pct, min_value=0, max_value=100)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>expect_table_row_count_to_be_between(min_value=100, max_value=5000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>expect_column_values_to_not_be_null(column=ds)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>expect_column_values_to_not_be_null(column=product_category)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>expect_column_values_to_be_between(column=revenue, min_value=0, max_value=2000000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>expect_column_values_to_be_between(column=cancellation_rate_pct, min_value=0, max_value=100)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_sales_and_demand</code></td><td>time_series_spans_2016_to_2018 (2016-2018)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_product_affinity</code></td><td>expect_table_row_count_to_be_between(min_value=80000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_product_affinity</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_product_affinity</code></td><td>expect_column_values_to_not_be_null(column=basket)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_product_affinity</code></td><td>expect_column_values_to_be_between(column=basket_size, min_value=1, max_value=30)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_product_affinity</code></td><td>expect_column_values_to_be_between(column=basket_value, min_value=0.01, max_value=50000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>expect_table_row_count_to_be_between(min_value=90000, max_value=120000)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>expect_column_values_to_not_be_null(column=review_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>expect_column_values_to_not_be_null(column=order_id)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>expect_column_values_to_be_between(column=review_score, min_value=1, max_value=5)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>expect_column_values_to_be_in_set(column=sentiment_label, value_set=['positive', 'neutral', 'negative'])</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+<tr><td>GOLD</td><td><code>mart_voice_of_customer</code></td><td>avg_review_score_between_3.5_and_5.0 (actual=4.09)</td><td style='color:#3fb950;font-weight:700'>PASS</td></tr>
+</tbody></table>
+</body></html>
