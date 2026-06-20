@@ -1,4 +1,4 @@
-"""
+r"""
 pipeline/ingest_bronze.py
 =========================
 Load all 9 Olist CSVs into DuckDB as Bronze tables.
@@ -19,8 +19,8 @@ Usage (PowerShell):
   python pipeline/ingest_bronze.py
 
 Env vars needed (.env):
-  OLIST_CSV_DIR   — path to folder containing the 9 CSVs
-  DUCKDB_PATH     — path to .duckdb file (created if missing)
+  OLIST_CSV_DIR   - path to folder containing the 9 CSVs
+  DUCKDB_PATH     - path to .duckdb file (created if missing)
 """
 
 import os

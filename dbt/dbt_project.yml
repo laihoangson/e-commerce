@@ -13,9 +13,8 @@ clean-targets: ["target", "dbt_packages"]
 
 models:
   ecom_intelligence:
-    bronze:
-      +materialized: view        # Bronze = pass-through views over DuckDB tables
-      +schema: bronze
+    # Bronze is a SOURCE (loaded by ingest_bronze.py), not a dbt model folder.
+    # No bronze config here — that was causing the unused path warning.
     silver:
       +materialized: table
       +schema: silver

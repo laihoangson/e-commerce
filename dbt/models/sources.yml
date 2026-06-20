@@ -3,6 +3,7 @@ version: 2
 sources:
   - name: bronze
     description: "Raw Olist CSV data loaded by pipeline/ingest_bronze.py into DuckDB"
+    schema: main       # DuckDB default schema — tables land here, no "bronze" schema
     tables:
       - name: bronze_orders
         description: "99,441 orders 2016-2018"

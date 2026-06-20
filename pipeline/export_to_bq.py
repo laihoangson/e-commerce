@@ -88,7 +88,7 @@ def export_mart(
     t0 = time.time()
 
     # Read from DuckDB gold schema
-    df: pd.DataFrame = con.execute(f"SELECT * FROM gold.{mart}").df()
+    df: pd.DataFrame = con.execute(f"SELECT * FROM main_gold.{mart}").df()
 
     # BigQuery doesn't like pandas Timestamp with timezone in some versions
     for col in df.select_dtypes(include=["datetimetz"]).columns:
