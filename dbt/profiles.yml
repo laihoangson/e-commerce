@@ -1,18 +1,21 @@
-# dbt-duckdb profile for RetailLens.
-#
-# Place this at dbt/profiles.yml and run dbt with:
-#   dbt run --profiles-dir .
-# from inside the dbt/ directory, OR copy it to ~/.dbt/profiles.yml.
-#
-# The DuckDB path is read from the DUCKDB_PATH env var (defaults to the repo's
-# data/retaillens.duckdb). When running from dbt/, the relative path resolves
-# against the dbt working directory, so an absolute path is recommended.
-
-retaillens:
+ecom_intelligence:
   target: dev
   outputs:
+
+    # -- Local dev: fast, no internet needed
     dev:
       type: duckdb
-      path: "{{ env_var('DUCKDB_PATH', '../data/retaillens.duckdb') }}"
+      path: "{{ env_var('DUCKDB_PATH', '../data/ecom.duckdb') }}"
       threads: 4
-      schema: main
+
+    # -- Production: BigQuery (used by Render API + Looker Studio)
+    prod:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: ecom_gold
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      location: US
+      threads: 4
+      timeout_seconds: 300
+      priority: interactive

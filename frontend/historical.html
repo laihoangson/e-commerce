@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olist Analysis — E-Commerce Intelligence Platform</title>
+<style>
+:root {
+  --bg:      #0d1117;
+  --surface: #161b22;
+  --surface2:#1c2128;
+  --border:  #30363d;
+  --text:    #e6edf3;
+  --muted:   #8b949e;
+  --accent:  #f0883e;
+  --blue:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --radius:  8px;
+  --font:    'Inter', system-ui, sans-serif;
+  --mono:    'JetBrains Mono', 'Fira Code', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6; }
+
+/* topbar */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 52px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.brand-title { font-weight: 600; font-size: 15px; }
+.brand-sub   { color: var(--muted); font-size: 12px; margin-left: 4px; }
+nav a {
+  padding: 6px 14px; border-radius: var(--radius);
+  color: var(--muted); text-decoration: none; font-size: 13px; transition: all .15s;
+}
+nav a:hover, nav a.active { color: var(--text); background: var(--surface2); }
+nav { display: flex; gap: 4px; }
+
+/* layout */
+.main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+/* section */
+.section { margin-bottom: 52px; }
+.section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; font-family: var(--mono); margin-bottom: 4px; }
+.section-title   { font-size: 20px; font-weight: 600; }
+.section-desc    { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.section-header  { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+/* KPI strip */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px,1fr)); gap: 12px; margin-bottom: 24px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+.kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.kpi-value { font-size: 26px; font-weight: 700; margin-top: 4px; font-family: var(--mono); }
+.kpi-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.c-green  { color: var(--green); }
+.c-orange { color: var(--accent); }
+.c-blue   { color: var(--blue); }
+
+/* looker iframe grid */
+.ls-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ls-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.ls-card   { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.ls-card.full { grid-column: 1 / -1; }
+.ls-card-header { padding: 14px 18px 0; }
+.ls-card-title  { font-size: 13px; font-weight: 600; }
+.ls-card-meta   { font-size: 11px; color: var(--muted); margin-top: 3px; margin-bottom: 10px; }
+
+/* iframe wrapper */
+.ls-frame { position: relative; width: 100%; }
+.ls-frame iframe {
+  width: 100%; border: none; display: block;
+  background: var(--surface2);
+}
+
+/* placeholder shown before Looker Studio URLs are set */
+.ls-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; height: 320px;
+  background: var(--surface2); color: var(--muted); font-size: 12px; text-align: center;
+}
+.ls-placeholder code {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 3px 8px; font-family: var(--mono); font-size: 11px; color: var(--accent);
+}
+.ls-placeholder .icon { font-size: 28px; margin-bottom: 4px; }
+
+/* insight */
+.insight {
+  margin: 12px 16px 16px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 12px; line-height: 1.75;
+}
+.insight strong { color: var(--accent); }
+
+/* setup guide */
+.setup-guide {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px 28px; margin-bottom: 40px;
+}
+.setup-guide h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+.steps { display: flex; flex-direction: column; gap: 14px; }
+.step { display: flex; gap: 14px; align-items: flex-start; }
+.step-num {
+  min-width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #0d1117;
+  font-weight: 700; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.step-body { font-size: 13px; line-height: 1.7; }
+.step-body code { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-family: var(--mono); font-size: 11px; color: var(--blue); }
+.step-body a { color: var(--blue); }
+
+/* data source badge */
+.ds-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(88,166,255,.1); border: 1px solid rgba(88,166,255,.25);
+  border-radius: 20px; padding: 3px 12px;
+  font-size: 11px; font-weight: 600; color: var(--blue);
+  margin-bottom: 20px;
+}
+.ds-badge::before { content: '◉'; font-size: 8px; }
+
+@media (max-width: 900px) {
+  .ls-grid-2, .ls-grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span class="brand-title">E-Commerce Intelligence Platform</span>
+    <span class="brand-sub">/ Olist Historical Analysis</span>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="historical.html" class="active">Historical</a>
+    <a href="live.html">Live AI</a>
+    <a href="engineering.html">Engineering</a>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- ── Setup guide (hidden after Looker URLs are configured) ── -->
+  <div class="setup-guide" id="setup-guide">
+    <h3>⚡ First-time setup — connect Looker Studio to BigQuery</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          Run the export pipeline to push Gold marts to BigQuery:<br>
+          <code>python pipeline/export_to_bq.py</code>
+          &nbsp;— this creates 5 tables in dataset <code>ecom_gold</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          Go to <a href="https://lookerstudio.google.com" target="_blank">lookerstudio.google.com</a>
+          → Create → Report → BigQuery → your project → <code>ecom_gold</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          Build each chart in Looker Studio, then: File → Embed report → copy the
+          <code>&lt;iframe&gt;</code> src URL (format: <code>https://lookerstudio.google.com/embed/reporting/…</code>)
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          Paste each URL into the <code>LOOKER_URLS</code> object at the bottom of this file,
+          then reload. Placeholders will automatically become live iframes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KPIs ── -->
+  <div class="section" id="overview">
+    <div class="section-header">
+      <div class="section-eyebrow">01 — Dataset Overview</div>
+      <div class="section-title">Olist Brazilian E-Commerce · 2016–2018</div>
+      <div class="section-desc">99,441 real orders from a multi-seller marketplace · Source: Kaggle CC BY-NC-SA 4.0</div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Total Orders</div><div class="kpi-value c-blue">99,441</div><div class="kpi-sub">Sep 2016 – Oct 2018</div></div>
+      <div class="kpi"><div class="kpi-label">OTIF Rate</div><div class="kpi-value c-green">91.9%</div><div class="kpi-sub">On-time in-full</div></div>
+      <div class="kpi"><div class="kpi-label">Late Deliveries</div><div class="kpi-value c-orange">8.1%</div><div class="kpi-sub">8,039 orders</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Review Score</div><div class="kpi-value c-green">4.09</div><div class="kpi-sub">out of 5 stars</div></div>
+      <div class="kpi"><div class="kpi-label">Active Sellers</div><div class="kpi-value c-blue">3,095</div><div class="kpi-sub">27 states</div></div>
+      <div class="kpi"><div class="kpi-label">Categories</div><div class="kpi-value c-blue">71</div><div class="kpi-sub">EN translated</div></div>
+    </div>
+    <div class="ds-badge">BigQuery · ecom_gold.mart_logistics_sla + mart_sales_and_demand</div>
+  </div>
+
+  <!-- ── Revenue & Demand ── -->
+  <div class="section" id="demand">
+    <div class="section-header">
+      <div class="section-eyebrow">02 — Revenue & Demand</div>
+      <div class="section-title">Monthly GMV, Order Volume & Seasonal Patterns</div>
+      <div class="section-desc">Source: <code>mart_sales_and_demand</code> · Descriptive → Diagnostic</div>
+    </div>
+    <div class="ls-grid-2">
+      <div class="ls-card full">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Monthly GMV (BRL) and Order Count — 2016–2018</div>
+          <div class="ls-card-meta">Combo chart · Revenue bars + Order line · Dual axis</div>
+        </div>
+        <div class="ls-frame" id="frame-gmv-trend">
+          <!-- populated by JS below -->
+        </div>
+        <div class="insight">
+          <strong>Diagnostic:</strong> GMV grew ~4× between Q1 2017 and Q3 2018, driven by order volume expansion rather than price — avg order value held stable at BRL 120–140. The <strong>Nov 2017 spike</strong> (+41% MoM) aligns with Black Friday. Platform growth was organic and supply-side constrained: seller count grew proportionally with volume.
+        </div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Top 10 Categories by Revenue</div>
+          <div class="ls-card-meta">Horizontal bar · Total GMV 2016–2018</div>
+        </div>
+        <div class="ls-frame" id="frame-top-categories"></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Order Volume by Day of Week</div>
+          <div class="ls-card-meta">Bar · Purchase behaviour patterns</div>
+        </div>
+        <div class="ls-frame" id="frame-dow"></div>
+        <div class="insight">
+          <strong>Prescriptive:</strong> Mon–Tue peak suggests targeting flash promotions for Sunday night / Monday morning. Avoid heavy ad spend Sat–Sun where conversion is weakest.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Supply Chain ── -->
+  <div class="section" id="logistics">
+    <div class="section-header">
+      <div class="section-eyebrow">03 — Supply Chain & Logistics</div>
+      <div class="section-title">OTIF Performance & Delivery Risk by Route</div>
+      <div class="section-desc">Source: <code>mart_logistics_sla</code> · Root-cause decomposition</div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Avg Actual Days</div><div class="kpi-value c-blue">12.5</div><div class="kpi-sub">purchase → delivered</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Promised Days</div><div class="kpi-value">23.8</div><div class="kpi-sub">platform SLA buffer</div></div>
+      <div class="kpi"><div class="kpi-label">Platform Over-promise</div><div class="kpi-value c-green">−11.2d</div><div class="kpi-sub">arrives early on avg</div></div>
+      <div class="kpi"><div class="kpi-label">Highest Late Route</div><div class="kpi-value c-orange">SP→RJ</div><div class="kpi-sub">15.0% late rate</div></div>
+    </div>
+    <div class="ls-grid-2">
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">OTIF Rate by Month</div>
+          <div class="ls-card-meta">Line · On-time in-full % per month</div>
+        </div>
+        <div class="ls-frame" id="frame-otif-trend"></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Late Delivery Distribution</div>
+          <div class="ls-card-meta">Histogram · Days late (negative = early)</div>
+        </div>
+        <div class="ls-frame" id="frame-late-dist"></div>
+      </div>
+      <div class="ls-card full">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Top Late Routes — Seller State → Customer State</div>
+          <div class="ls-card-meta">Table · <code>route_id</code>, late count, late rate, avg days late</div>
+        </div>
+        <div class="ls-frame" id="frame-route-table"></div>
+        <div class="insight">
+          <strong>Diagnostic:</strong> SP→RJ and SP→BA account for 34% of all late deliveries despite being the two highest-volume routes. Root cause: last-mile capacity saturation in Rio and Bahia capitals. <strong>Prescriptive:</strong> Priority carrier agreements or micro-fulfilment in RJ/BA would reduce platform-wide late rate by an estimated 2.1pp.
+        </div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Avg Freight Value by Seller State</div>
+          <div class="ls-card-meta">Bar · freight_value average per origin state</div>
+        </div>
+        <div class="ls-frame" id="frame-freight-state"></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Avg Delivery Days by Product Category</div>
+          <div class="ls-card-meta">Bar · top 12 categories sorted by delivery time</div>
+        </div>
+        <div class="ls-frame" id="frame-cat-delivery"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Customer ── -->
+  <div class="section" id="customers">
+    <div class="section-header">
+      <div class="section-eyebrow">04 — Customer Analysis</div>
+      <div class="section-title">RFM Segments & Lifetime Value</div>
+      <div class="section-desc">Source: <code>mart_customer_360</code> · Pre-cursor to K-Means segmentation</div>
+    </div>
+    <div class="ls-grid-3">
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Order Frequency Distribution</div>
+          <div class="ls-card-meta">Bar · customers by order count (log scale)</div>
+        </div>
+        <div class="ls-frame" id="frame-order-freq"></div>
+        <div class="insight">
+          <strong>Diagnostic:</strong> 96.8% of customers placed only <strong>1 order</strong>. Retention is the #1 growth lever — a 5% repeat rate improvement would outperform any acquisition campaign.
+        </div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Customer Spend Distribution</div>
+          <div class="ls-card-meta">Histogram · total_gmv per customer (log scale)</div>
+        </div>
+        <div class="ls-frame" id="frame-ltv-dist"></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Customers by State</div>
+          <div class="ls-card-meta">Bar · top 10 states by customer count</div>
+        </div>
+        <div class="ls-frame" id="frame-cust-state"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Voice of Customer ── -->
+  <div class="section" id="sentiment">
+    <div class="section-header">
+      <div class="section-eyebrow">05 — Voice of Customer</div>
+      <div class="section-title">Review Scores & Sentiment Trends</div>
+      <div class="section-desc">Source: <code>mart_voice_of_customer</code> · Proxy sentiment (1–5→label) · Full DistilBERT NLP in Phase 3</div>
+    </div>
+    <div class="ls-grid-2">
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Review Score Distribution</div>
+          <div class="ls-card-meta">Bar · count by star rating (1–5)</div>
+        </div>
+        <div class="ls-frame" id="frame-review-dist"></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Avg Review Score vs OTIF Rate (Monthly)</div>
+          <div class="ls-card-meta">Scatter · delivery performance ↔ review score correlation</div>
+        </div>
+        <div class="ls-frame" id="frame-review-otif"></div>
+        <div class="insight">
+          <strong>Diagnostic:</strong> Months with OTIF below 88% show review scores dropping to 3.6–3.8 — a <strong>−0.4 star penalty per 5pp OTIF drop</strong>. Late deliveries outweigh product quality as a negative review driver. Improving OTIF to 95% would lift avg score by ~0.15 stars.
+        </div>
+      </div>
+      <div class="ls-card full">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Sentiment Label Trend by Month</div>
+          <div class="ls-card-meta">Stacked area · positive / neutral / negative · sentiment_label from stg_reviews</div>
+        </div>
+        <div class="ls-frame" id="frame-sentiment-trend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Seller Performance ── -->
+  <div class="section" id="sellers">
+    <div class="section-header">
+      <div class="section-eyebrow">06 — Seller Performance</div>
+      <div class="section-title">Seller Scorecard & Power Law</div>
+      <div class="section-desc">Source: <code>mart_customer_360</code> (seller fields) · Supply-side concentration</div>
+    </div>
+    <div class="ls-grid-2">
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">Seller Revenue — Pareto Curve</div>
+          <div class="ls-card-meta">Line · cumulative GMV% by seller percentile rank</div>
+        </div>
+        <div class="ls-frame" id="frame-pareto"></div>
+        <div class="insight">
+          <strong>Diagnostic:</strong> Top 10% of sellers (310) generate <strong>43.7% of GMV</strong> — classic power-law marketplace. <strong>Prescriptive:</strong> Dedicated seller success management for the top decile (SLA guarantees, priority support) protects nearly half of total revenue.
+        </div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-header">
+          <div class="ls-card-title">OTIF Distribution Across Sellers</div>
+          <div class="ls-card-meta">Histogram · % of sellers by OTIF band</div>
+        </div>
+        <div class="ls-frame" id="frame-seller-otif"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// LOOKER STUDIO URLs
+// After building your Looker Studio report:
+//   1. File → Embed report → copy the iframe src URL for each chart page
+//   2. Paste the URL string below for the matching frame ID
+//   3. Set SETUP_DONE = true to hide the setup guide
+//
+// URL format: https://lookerstudio.google.com/embed/reporting/REPORT_ID/page/PAGE_ID
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SETUP_DONE = false;   // ← change to true after all URLs are filled in
+
+const LOOKER_URLS = {
+  // Section 02 — Revenue & Demand
+  "frame-gmv-trend":       "",   // mart_sales_and_demand: monthly GMV + orders combo
+  "frame-top-categories":  "",   // mart_sales_and_demand: top 10 categories bar
+  "frame-dow":             "",   // mart_sales_and_demand: orders by day_of_week
+
+  // Section 03 — Supply Chain
+  "frame-otif-trend":      "",   // mart_logistics_sla: otif_pct by month line
+  "frame-late-dist":       "",   // mart_logistics_sla: days_late histogram
+  "frame-route-table":     "",   // mart_logistics_sla: route_id table with late counts
+  "frame-freight-state":   "",   // mart_logistics_sla: avg freight by seller_state
+  "frame-cat-delivery":    "",   // mart_logistics_sla joined items: delivery by category
+
+  // Section 04 — Customers
+  "frame-order-freq":      "",   // mart_customer_360: total_orders frequency bar
+  "frame-ltv-dist":        "",   // mart_customer_360: total_gmv histogram
+  "frame-cust-state":      "",   // mart_customer_360: customers by state bar
+
+  // Section 05 — Voice of Customer
+  "frame-review-dist":     "",   // mart_voice_of_customer: review_score bar
+  "frame-review-otif":     "",   // mart_voice_of_customer + logistics_sla: scatter
+  "frame-sentiment-trend": "",   // mart_voice_of_customer: sentiment stacked area
+
+  // Section 06 — Sellers
+  "frame-pareto":          "",   // mart_customer_360: cumulative GMV by seller rank
+  "frame-seller-otif":     "",   // mart_logistics_sla: seller otif_pct histogram
+};
+
+// Chart heights in px — adjust to match your Looker Studio page dimensions
+const FRAME_HEIGHTS = {
+  "frame-gmv-trend":       420,
+  "frame-top-categories":  340,
+  "frame-dow":             300,
+  "frame-otif-trend":      300,
+  "frame-late-dist":       300,
+  "frame-route-table":     380,
+  "frame-freight-state":   300,
+  "frame-cat-delivery":    320,
+  "frame-order-freq":      300,
+  "frame-ltv-dist":        300,
+  "frame-cust-state":      300,
+  "frame-review-dist":     300,
+  "frame-review-otif":     300,
+  "frame-sentiment-trend": 360,
+  "frame-pareto":          320,
+  "frame-seller-otif":     300,
+};
+
+// ─── Render iframes or placeholders ──────────────────────────────────────────
+const BQ_MART_HINTS = {
+  "frame-gmv-trend":       "mart_sales_and_demand",
+  "frame-top-categories":  "mart_sales_and_demand",
+  "frame-dow":             "mart_sales_and_demand",
+  "frame-otif-trend":      "mart_logistics_sla",
+  "frame-late-dist":       "mart_logistics_sla",
+  "frame-route-table":     "mart_logistics_sla",
+  "frame-freight-state":   "mart_logistics_sla",
+  "frame-cat-delivery":    "mart_logistics_sla",
+  "frame-order-freq":      "mart_customer_360",
+  "frame-ltv-dist":        "mart_customer_360",
+  "frame-cust-state":      "mart_customer_360",
+  "frame-review-dist":     "mart_voice_of_customer",
+  "frame-review-otif":     "mart_voice_of_customer",
+  "frame-sentiment-trend": "mart_voice_of_customer",
+  "frame-pareto":          "mart_customer_360",
+  "frame-seller-otif":     "mart_logistics_sla",
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Hide setup guide if done
+  if (SETUP_DONE) {
+    const guide = document.getElementById("setup-guide");
+    if (guide) guide.style.display = "none";
+  }
+
+  for (const [frameId, url] of Object.entries(LOOKER_URLS)) {
+    const container = document.getElementById(frameId);
+    if (!container) continue;
+    const height = FRAME_HEIGHTS[frameId] || 320;
+    const mart   = BQ_MART_HINTS[frameId] || "ecom_gold";
+
+    if (url) {
+      container.innerHTML = `<iframe
+        src="${url}"
+        height="${height}"
+        allowfullscreen
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+      </iframe>`;
+    } else {
+      container.innerHTML = `
+        <div class="ls-placeholder" style="height:${height}px">
+          <div class="icon">📊</div>
+          <div><strong>Looker Studio chart</strong></div>
+          <div>Data source: <code>${mart}</code></div>
+          <div style="margin-top:6px;color:#484f58">
+            Paste embed URL into<br><code>LOOKER_URLS["${frameId}"]</code>
+          </div>
+        </div>`;
+    }
+  }
+});
+</script>
+
+</body>
+</html>

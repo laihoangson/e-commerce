@@ -1,0 +1,39 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Raw Olist CSV data loaded by pipeline/ingest_bronze.py into DuckDB"
+    tables:
+      - name: bronze_orders
+        description: "99,441 orders 2016-2018"
+        columns:
+          - name: order_id
+            tests: [unique, not_null]
+
+      - name: bronze_customers
+        columns:
+          - name: customer_id
+            tests: [unique, not_null]
+
+      - name: bronze_order_items
+        columns:
+          - name: order_id
+            tests: [not_null]
+
+      - name: bronze_products
+        columns:
+          - name: product_id
+            tests: [unique, not_null]
+
+      - name: bronze_sellers
+        columns:
+          - name: seller_id
+            tests: [unique, not_null]
+
+      - name: bronze_reviews
+
+      - name: bronze_payments
+
+      - name: bronze_geolocation
+
+      - name: bronze_category_xlat

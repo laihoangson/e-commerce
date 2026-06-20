@@ -1,61 +1,71 @@
-## RetailLens
+# E-Commerce Intelligence Platform
 
-Solo end-to-end e-commerce intelligence platform built as a portfolio project. Demonstrates a generalist DE/DA/DS/MLE skill set across the full data lifecycle, running entirely on $0 free-tier cloud services.
+End-to-end solo e-commerce intelligence platform. Demonstrates generalist DE / DA / DS / MLE skills on a $0 free-tier stack using the real Olist Brazilian marketplace dataset (~100k orders).
 
-> "See your business through the right lens."
+> Supply chain intelligence, demand forecasting, customer segmentation, NLP sentiment, and cross-sell recommendations — all in one pipeline.
 
-### Data approach
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://python.org)
+[![dbt](https://img.shields.io/badge/dbt-1.8-orange)](https://getdbt.com)
+[![DuckDB](https://img.shields.io/badge/DuckDB-0.10-yellow)](https://duckdb.org)
 
-The platform uses a hybrid dataset: the real Olist Brazilian e-commerce dataset (~99k orders, Sept 2016 to Oct 2018) as the historical core, plus a small synthetic live tail (2024-2026) that continues the timeline. The live tail is documented synthetic data, generated to keep the dashboard current and to host controlled A/B experiments. All monetary values are in Brazilian Real (BRL).
+## Architecture
 
-- Historical core: real Olist transactions loaded into Bronze
-- Live tail: ~20 synthetic orders/day (2024-2026), reusing real Olist product/seller/customer pools
-- Live tail encodes a disclosed, noisy loyalty pattern so the reactivation model has genuine signal to learn
-
-### Architecture - Medallion (Bronze -> Silver -> Gold)
-
-- Bronze: 9 raw synthetic tables as DuckDB native TABLEs, each carrying 4 metadata columns (_ingested_at, _source_file, _batch_id, _is_valid)
-- Silver: cleansed star schema via dbt - 6 dimensions + 4 facts
-- Gold: business marts synced to Supabase Postgres
-
-### Tech stack ($0 free tier)
-
-DuckDB (warehouse) · Supabase Storage + Postgres · dbt · Great Expectations · GitHub Actions · FastAPI on Render · vanilla JS on GitHub Pages · Groq · ChromaDB · UptimeRobot + Slack.
-
-### Status
-
-In active development.
-
-| Phase | Weeks | Milestone | Status |
-|-------|-------|-----------|--------|
-| 1. Foundation | W1-W2 | Repo, GHA, Supabase, health check | Done |
-| 2. Data ingestion | W3-W6 | Olist load + synthetic live tail | Done |
-| 3. Quality & transform | W6-W8 | Great Expectations, dbt Silver+Gold | Done |
-| 4. Dashboard | W9-W10 | FastAPI + 2-tab dashboard, map, 13 sections | Done |
-| 5. ML | W11-W15 | Reactivation, recsys, A/B (notebook done) | In progress |
-| 6. RAG + NLI | W16-W18 | RAG insights + NLI verified citations | TODO |
-| 7. Observability & launch | W19-W22 | Drift detection, polish, launch | TODO |
-
-### Quick start (Windows + PowerShell)
-
-```powershell
-git clone https://github.com/YOUR_USERNAME/retaillens.git
-cd retaillens
-
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-pip install -r requirements.txt
-
-copy .env.example .env
-# Open .env, fill in SUPABASE_URL / SUPABASE_SERVICE_KEY / SUPABASE_BUCKET
-
-cd pipeline
-python 00_health_check.py
+```
+Olist CSVs (Bronze)
+    └─► DuckDB (ingest_bronze.py)
+            └─► dbt Silver (3 models: stg_orders, stg_order_items, stg_reviews)
+                    └─► dbt Gold (5 marts)
+                            ├─ mart_logistics_sla       → historical.html
+                            ├─ mart_sales_and_demand    → historical.html + Prophet
+                            ├─ mart_customer_360        → K-Means segmentation
+                            ├─ mart_product_affinity    → Apriori cross-sell
+                            └─ mart_voice_of_customer   → DistilBERT sentiment
 ```
 
-A passing health check (exit 0) means the environment is ready for Phase 2.
+## Stack
 
-### License
+| Layer | Tech | Cost |
+|-------|------|------|
+| Warehouse | DuckDB | $0 |
+| Transform | dbt-core + dbt-duckdb | $0 |
+| Storage | Supabase (free tier) | $0 |
+| API | FastAPI on Render | $0 |
+| Dashboard | GitHub Pages | $0 |
+| LLM | Groq API (free tier) | $0 |
 
-MIT
+## Quick Start (Windows / PowerShell)
+
+```powershell
+git clone https://github.com/laihoangson/e-commerce.git
+cd e-commerce
+
+# 1. Place Olist CSVs in data/raw/olist/
+#    Download: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+
+# 2. Setup + ingest Bronze
+.\scripts\setup.ps1
+
+# 3. Run dbt transforms
+cd dbt
+dbt deps
+dbt run
+dbt test
+
+# 4. Open dashboard
+start frontend/historical.html
+```
+
+## Phases
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| 1. Foundation | ✅ Done | Bronze ingestion, dbt Silver + Gold |
+| 2. ML Training | 🔵 Next | XGBoost, Prophet, K-Means, DistilBERT, Apriori |
+| 3. Live AI Portal | ⏳ Planned | FastAPI on Render, live.html command center |
+| 4. Engineering Docs | ⏳ Planned | Medallion diagram, scale-up roadmap |
+
+## Data
+
+**Olist Brazilian E-Commerce** — 99,441 real orders, Sep 2016 – Oct 2018.  
+License: CC BY-NC-SA 4.0 · Source: Kaggle  
+9 CSVs: orders, customers, sellers, products, reviews, payments, geolocation, order_items, category_translation.

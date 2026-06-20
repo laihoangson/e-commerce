@@ -1,38 +1,52 @@
-# Secrets
-.env
-*.key
-
-# DuckDB local file (source-of-truth lives on Supabase Storage)
-*.duckdb
-*.duckdb.wal
-data/*.duckdb
-
 # Python
-__pycache__/
-*.py[cod]
 .venv/
-venv/
-.pytest_cache/
-.ipynb_checkpoints/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Env
+.env
+.env.example
+
+# DuckDB (generated — do not commit large DB file)
+data/ecom.duckdb
+data/ecom.duckdb.wal
+data/*.parquet
+
+# Olist raw CSVs (too large for git — download from Kaggle)
+data/raw/
 
 # dbt
 dbt/target/
-dbt/dbt_packages/
 dbt/logs/
+dbt/dbt_packages/
 
-# Great Expectations
-expectations/uncommitted/
+# ML artifacts (large binaries)
+ml/artifacts/*.pkl
+ml/artifacts/*.joblib
+ml/artifacts/*.pt
+ml/artifacts/*.bin
 
-# ChromaDB persisted artifacts
-rag/chroma/
-*.tar.gz
+# MLflow
+mlruns/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
+# VS Code
 .vscode/
-.idea/
-dbt/.user.yml
-dbt/target/
+
+# Node (if any)
+node_modules/
+
+plan.md
